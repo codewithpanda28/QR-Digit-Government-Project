@@ -99,6 +99,8 @@ export function formatCategoryName(category: QRCategory): string {
         'vehicle-safety': 'Vehicle Safety',
         'tourist-safety': 'Tourist Safety',
         'temple-event': 'Temple/Event Safety',
+        'mela-safety': 'Mela Safety',
+        'event-safety': 'Event Safety',
     }
     return names[category]
 }
@@ -115,6 +117,8 @@ export function getCategoryColor(category: QRCategory): string {
         'vehicle-safety': '#4361EE',
         'tourist-safety': '#06D6A0',
         'temple-event': '#FFB703',
+        'mela-safety': '#F97316',
+        'event-safety': '#8B5CF6',
     }
     return colors[category]
 }

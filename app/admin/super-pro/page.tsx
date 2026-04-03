@@ -123,7 +123,7 @@ function SuperProAdminPanelContent() {
     async function loadStats() {
         try {
             const result = await getGlobalAdminStats();
-            if (result.success) {
+            if (result.success && result.data) {
                 setStats(result.data);
             }
         } catch (error) { console.error(error); }
