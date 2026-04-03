@@ -303,3 +303,5 @@ If any error:
 **System is 95% ready! Just run the database migration and add passcode generator!** 🚀
 
 **Built with ❤️ for ThinkAIQ Safety QR**
+
+
