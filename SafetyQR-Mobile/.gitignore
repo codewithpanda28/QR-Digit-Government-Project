@@ -1,0 +1,54 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Expo
+.expo/
+.expo-shared/
+dist/
+web-build/
+
+# Native
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# Debugging
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.vscode/
+.idea/
+
+# Environment
+.env
+.env.local
+.env.production
+
+# OSX
+.DS_Store
+
+# Logs
+logs/
+*.log
+
+# Temporary
+*.swp
+*.swo
+*~
+.tmp/
+
+# Android/IOS
+android/
+ios/
+
+# Testing
+coverage/
+.nyc_output/

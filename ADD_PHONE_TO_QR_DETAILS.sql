@@ -1,0 +1,2 @@
+ALTER TABLE public.qr_details
+ADD COLUMN IF NOT EXISTS phone TEXT;

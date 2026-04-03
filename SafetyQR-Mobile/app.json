@@ -1,0 +1,79 @@
+{
+    "expo": {
+        "name": "SafetyQR",
+        "slug": "safety-qr",
+        "version": "1.0.0",
+        "orientation": "portrait",
+        "icon": "./assets/icon.png",
+        "userInterfaceStyle": "automatic",
+        "scheme": "safetyqr",
+        "splash": {
+            "image": "./assets/splash.png",
+            "resizeMode": "contain",
+            "backgroundColor": "#7C3AED"
+        },
+        "assetBundlePatterns": [
+            "**/*"
+        ],
+        "ios": {
+            "supportsTablet": true,
+            "bundleIdentifier": "com.thinkaiq.safetyqr",
+            "infoPlist": {
+                "NSCameraUsageDescription": "Camera is needed for QR code scanning and emergency photo capture",
+                "NSLocationAlwaysAndWhenInUseUsageDescription": "Location is needed for emergency tracking and safety features even when the app is closed",
+                "NSLocationWhenInUseUsageDescription": "Location is needed for safety features while using the app",
+                "NSLocationAlwaysUsageDescription": "Location is needed for continuous safety monitoring",
+                "NSMicrophoneUsageDescription": "Microphone for emergency audio recording",
+                "UIBackgroundModes": [
+                    "location",
+                    "fetch",
+                    "remote-notification"
+                ]
+            }
+        },
+        "android": {
+            "adaptiveIcon": {
+                "foregroundImage": "./assets/adaptive-icon.png",
+                "backgroundColor": "#7C3AED"
+            },
+            "package": "com.thinkaiq.safetyqr",
+            "permissions": [
+                "CAMERA",
+                "ACCESS_FINE_LOCATION",
+                "ACCESS_COARSE_LOCATION",
+                "ACCESS_BACKGROUND_LOCATION",
+                "RECORD_AUDIO",
+                "VIBRATE",
+                "READ_EXTERNAL_STORAGE",
+                "WRITE_EXTERNAL_STORAGE",
+                "RECEIVE_BOOT_COMPLETED"
+            ]
+        },
+        "plugins": [
+            [
+                "expo-camera",
+                {
+                    "cameraPermission": "Allow SafetyQR to access your camera for QR scanning and emergency photos"
+                }
+            ],
+            [
+                "expo-location",
+                {
+                    "locationAlwaysAndWhenInUsePermission": "Allow SafetyQR to use your location for emergency tracking and safety features",
+                    "locationAlwaysPermission": "Allow SafetyQR to access your location even when the app is closed for continuous safety monitoring",
+                    "locationWhenInUsePermission": "Allow SafetyQR to use your location while using the app"
+                }
+            ],
+            [
+                "expo-notifications",
+                {
+                    "icon": "./assets/notification-icon.png",
+                    "color": "#7C3AED"
+                }
+            ]
+        ],
+        "web": {
+            "favicon": "./assets/favicon.png"
+        }
+    }
+}
