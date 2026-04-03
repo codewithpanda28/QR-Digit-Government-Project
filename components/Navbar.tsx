@@ -10,14 +10,14 @@ import toast from 'react-hot-toast'
 export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [user, setUser] = useState<any>(null)
-    const [profile, setProfile] = useState<{name: string, photo: string | null} | null>(null)
+    const [profile, setProfile] = useState<{ name: string, photo: string | null } | null>(null)
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
     useEffect(() => {
         const checkUser = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             setUser(session?.user ?? null);
-            
+
             // Initial load from storage
             const saved = localStorage.getItem('q_raksha_user_profile');
             if (saved) setProfile(JSON.parse(saved));
@@ -66,7 +66,7 @@ export default function Navbar() {
                     </div>
                     <div className="flex flex-col">
                         <span className="text-xl font-bold tracking-tight text-gray-900 group-hover:text-indigo-600 transition-colors">
-                            QR<span className="text-indigo-600">digit</span>
+                            Q-<span className="text-indigo-600">Raksha</span>
                         </span>
                         <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Smart Safety</span>
                     </div>
@@ -84,7 +84,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-6">
                     {user ? (
                         <div className="relative">
-                            <button 
+                            <button
                                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                                 className="flex items-center gap-2 bg-slate-50 border-2 border-slate-100 px-3 py-1.5 rounded-full hover:border-red-200 transition-all font-bold text-[10px] uppercase tracking-widest text-zinc-900 shadow-sm"
                             >
@@ -101,17 +101,17 @@ export default function Navbar() {
                                 </div>
                                 <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                             </button>
-                            
+
                             {isUserMenuOpen && (
                                 <div className="absolute top-12 right-0 w-48 bg-white border-2 border-slate-100 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
-                                    <NextLink 
-                                        href="/login" 
+                                    <NextLink
+                                        href="/login"
                                         className="flex items-center gap-2 p-3 hover:bg-slate-50 rounded-xl font-bold text-[10px] uppercase tracking-widest text-zinc-600 hover:text-red-600 transition-all"
                                         onClick={() => setIsUserMenuOpen(false)}
                                     >
                                         <LayoutDashboard className="w-4 h-4" /> My Dashboard
                                     </NextLink>
-                                    <button 
+                                    <button
                                         onClick={handleLogout}
                                         className="w-full flex items-center gap-2 p-3 hover:bg-red-50 rounded-xl font-bold text-[10px] uppercase tracking-widest text-red-600 transition-all"
                                     >
@@ -128,8 +128,8 @@ export default function Navbar() {
                     <NextLink href="/shop" className="text-red-600 p-2 hover:scale-110 active:scale-90 transition-all">
                         <ShoppingCart className="w-6 h-6" />
                     </NextLink>
-                    <button 
-                        className="md:hidden text-zinc-600" 
+                    <button
+                        className="md:hidden text-zinc-600"
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
                         {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}

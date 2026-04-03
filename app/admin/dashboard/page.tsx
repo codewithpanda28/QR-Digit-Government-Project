@@ -142,11 +142,11 @@ export default function DashboardPage() {
         // WhatsApp Notification
         const order = orders.find((o: any) => o.order_id === orderId);
         if (order && order.customer_phone) {
-            let msg = `*Q-Raksha Order Update* 📦\n\nNamaste ${order.customer_name} ji,\nAapka order (${order.product_name}) ka status update hua hai:\n\n*Current Status:* ${newStatus}\n`;
+            let msg = `*QRdigit Order Update* 📦\n\nNamaste ${order.customer_name} ji,\nAapka order (${order.product_name}) ka status update hua hai:\n\n*Current Status:* ${newStatus}\n`;
             if (newStatus === 'PROCESSING') msg += '\nAapka order pack kiya ja raha hai aur jaldi dispatch hoga. 🚚';
             else if (newStatus === 'SHIPPED') msg += '\nAapka order courier ke through nikal chuka hai! Jaldi aapke paas pahunchega. 📍';
-            else if (newStatus === 'DELIVERED') msg += '\nAapka order successfully deliver ho chuka hai! Q-Raksha se judne ke liye shukriya. ✅';
-            msg += '\n\n- Q-Raksha Team 🛡️';
+            else if (newStatus === 'DELIVERED') msg += '\nAapka order successfully deliver ho chuka hai! QRdigit se judne ke liye shukriya. ✅';
+            msg += '\n\n- QRdigit Team 🛡️';
             
             const waPhone = order.customer_phone.replace(/\D/g, '');
             const waLink = `https://wa.me/91${waPhone}?text=${encodeURIComponent(msg)}`;
@@ -452,7 +452,7 @@ export default function DashboardPage() {
                                                 <div className="flex gap-2">
                                                     <button 
                                                         onClick={() => {
-                                                            const msg = `*Q-Raksha Order Update* 📦\n\nNamaste ${order.customer_name} ji,\nAapka order (${order.product_name}) check kiya gaya hai. 🛡️\n\n- Q-Raksha Team`;
+                                                            const msg = `*QRdigit Order Update* 📦\n\nNamaste ${order.customer_name} ji,\nAapka order (${order.product_name}) check kiya gaya hai. 🛡️\n\n- QRdigit Team`;
                                                             window.open(`https://wa.me/91${order.customer_phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
                                                         }}
                                                         className="flex-1 py-3 bg-emerald-600/10 border border-emerald-600/20 text-emerald-500 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 hover:text-white transition-all"

@@ -201,7 +201,7 @@ function AdminLayoutContent({
         // Clear server cookie
         const { logout } = await import('@/app/admin/actions');
         await logout();
-        
+
         localStorage.removeItem('admin_session')
         localStorage.removeItem('super_pro_admin_session')
         await supabase.auth.signOut()
@@ -261,11 +261,11 @@ function AdminLayoutContent({
         { icon: MapPin, label: 'Live Radar', href: '/admin/map', roles: ['super_pro_admin', 'super_admin', 'sub_admin', 'analytics_admin'] },
         { icon: Shield, label: 'Emergency Logs', href: '/admin/alerts', roles: ['super_pro_admin', 'super_admin', 'sub_admin', 'analytics_admin'] },
 
-        { 
-            icon: Package, 
-            label: 'Purchase Orders', 
-            href: userRole === 'super_pro_admin' ? '/admin/super-pro?tab=orders' : '/admin/dashboard?tab=orders', 
-            roles: ['super_pro_admin', 'super_admin'] 
+        {
+            icon: Package,
+            label: 'Purchase Orders',
+            href: userRole === 'super_pro_admin' ? '/admin/super-pro?tab=orders' : '/admin/dashboard?tab=orders',
+            roles: ['super_pro_admin', 'super_admin']
         },
         { icon: Crown, label: 'Manage Super-Admins', href: '/admin/super-pro', roles: ['super_pro_admin'], divider: true },
 
@@ -341,11 +341,10 @@ function AdminLayoutContent({
                             )}
                             <Link
                                 href={item.href}
-                                className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 group ${
-                                    (pathname === item.href.split('?')[0] && (item.href.includes('?tab=') ? searchParams.get('tab') === item.href.split('tab=')[1] : true))
-                                    ? 'bg-white text-black shadow-xl shadow-white/10 font-bold'
-                                    : 'text-zinc-400 hover:text-white hover:bg-white/5'
-                                }`}
+                                className={`flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 group ${(pathname === item.href.split('?')[0] && (item.href.includes('?tab=') ? searchParams.get('tab') === item.href.split('tab=')[1] : true))
+                                        ? 'bg-white text-black shadow-xl shadow-white/10 font-bold'
+                                        : 'text-zinc-400 hover:text-white hover:bg-white/5'
+                                    }`}
                             >
                                 <item.icon className={`w-5 h-5 transition-transform duration-500 ${pathname === item.href.split('?')[0] ? 'scale-110' : 'group-hover:scale-110'}`} />
                                 {isSidebarOpen && (
@@ -475,7 +474,7 @@ function AdminLayoutContent({
                                                 <p className="text-[8px] font-black text-primary uppercase tracking-tighter bg-primary/10 px-1 rounded mt-0.5">
                                                     Managing: {user.impersonatingName}
                                                 </p>
-                                                <button 
+                                                <button
                                                     onClick={handleStopImpersonating}
                                                     className="text-[8px] font-bold text-red-500 hover:text-red-400 uppercase tracking-tighter flex items-center gap-1 group"
                                                 >
@@ -501,7 +500,7 @@ function AdminLayoutContent({
 
                 {/* Content Container */}
                 {children}
-                
+
                 <style jsx global>{`
                     .custom-scrollbar::-webkit-scrollbar {
                         width: 6px;

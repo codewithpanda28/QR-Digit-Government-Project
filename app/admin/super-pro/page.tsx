@@ -190,13 +190,13 @@ function SuperProAdminPanelContent() {
         // --- WhatsApp Notification feature ---
         const order = orders.find((o: any) => o.order_id === orderId);
         if (order && order.customer_phone) {
-            let msg = `*Q-Raksha Order Update* 📦\n\nNamaste ${order.customer_name} ji,\nAapka order (${order.product_name}) ka status update hua hai:\n\n*Current Status:* ${newStatus}\n`;
+            let msg = `*QRdigit Order Update* 📦\n\nNamaste ${order.customer_name} ji,\nAapka order (${order.product_name}) ka status update hua hai:\n\n*Current Status:* ${newStatus}\n`;
             
             if (newStatus === 'PROCESSING') msg += '\nAapka order pack kiya ja raha hai aur jaldi dispatch hoga. 🚚';
-            else if (newStatus === 'SHIPPED') msg += '\nAapka order courier ke through nikal chuka hai! Jaldi aapke paas pahunchega. 📍\nSaath hi aap Q-Raksha dashboard me details scan pe daal sakte hai jisse QR tag active ho jaye.';
-            else if (newStatus === 'DELIVERED') msg += '\nAapka order successfully deliver ho chuka hai! Q-Raksha se judne ke liye shukriya. ✅\nKoi problem aaye toh is number par support ke liye message karein.';
+            else if (newStatus === 'SHIPPED') msg += '\nAapka order courier ke through nikal chuka hai! Jaldi aapke paas pahunchega. 📍\nSaath hi aap QRdigit dashboard me details scan pe daal sakte hai jisse QR tag active ho jaye.';
+            else if (newStatus === 'DELIVERED') msg += '\nAapka order successfully deliver ho chuka hai! QRdigit se judne ke liye shukriya. ✅\nKoi problem aaye toh is number par support ke liye message karein.';
             
-            msg += '\n\n- Q-Raksha Team 🛡️\nIndia\'s #1 Safety QR';
+            msg += '\n\n- QRdigit Team 🛡️\nIndia\'s #1 Safety QR';
             
             const waPhone = order.customer_phone.replace(/\D/g, '');
             const waLink = `https://wa.me/91${waPhone}?text=${encodeURIComponent(msg)}`;
@@ -358,7 +358,7 @@ function SuperProAdminPanelContent() {
                     <div className="flex items-center justify-between">
                         <div>
                             <h2 className="text-xl font-bold text-white flex items-center gap-2"><Package className="w-5 h-5 text-yellow-500" /> Purchase Orders</h2>
-                            <p className="text-zinc-600 text-xs mt-0.5">Saare Q-Raksha QR tag orders — courier dispatch ke liye</p>
+                            <p className="text-zinc-600 text-xs mt-0.5">Saare QRdigit QR tag orders — courier dispatch ke liye</p>
                         </div>
                         <button onClick={loadOrders} className="p-2 text-zinc-500 hover:text-white transition-colors"><RefreshCw className="w-4 h-4" /></button>
                     </div>

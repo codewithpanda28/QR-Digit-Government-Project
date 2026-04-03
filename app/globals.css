@@ -53,12 +53,14 @@
   }
 
   /* ✅ Smooth image rendering */
-  img, [data-next-image] {
+  img,
+  [data-next-image] {
     image-rendering: -webkit-optimize-contrast;
   }
 
   /* ✅ GPU acceleration hint for animated cards */
-  .solid-card, .shop-card {
+  .solid-card,
+  .shop-card {
     will-change: transform;
   }
 }

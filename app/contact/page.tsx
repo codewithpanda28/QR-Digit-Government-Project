@@ -13,10 +13,10 @@ export default function ContactPage() {
 
             <main className="pt-32 pb-40">
                 <section className="max-w-[1200px] mx-auto px-6 mb-24 text-center">
-                     <div className="inline-flex items-center gap-3 px-5 py-2 bg-red-600 text-white rounded-full shadow-lg mb-6">
-                         <Siren className="w-5 h-5 animate-bounce" />
-                         <span className="text-xs font-bold tracking-widest uppercase">Q-Raksha — India's #1 Safety QR</span>
-                     </div>
+                    <div className="inline-flex items-center gap-3 px-5 py-2 bg-red-600 text-white rounded-full shadow-lg mb-6">
+                        <Siren className="w-5 h-5 animate-bounce" />
+                        <span className="text-xs font-bold tracking-widest uppercase">Q-Raksha — India's #1 Safety QR</span>
+                    </div>
                     <h1 className="text-5xl md:text-7xl font-semibold leading-[1.05] tracking-tight mb-6">
                         Humse <span className="text-red-600 italic">Baat Karein.</span>
                     </h1>

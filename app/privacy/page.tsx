@@ -14,7 +14,7 @@ export default function PrivacyPolicyPage() {
                 <section className="max-w-[1000px] mx-auto px-6 mb-16 text-center">
                     <div className="inline-flex items-center gap-3 px-5 py-2 bg-red-600 text-white rounded-full shadow-lg mb-6">
                         <Siren className="w-5 h-5 animate-bounce" />
-                        <span className="text-xs font-bold tracking-widest uppercase">Q-Raksha — India's #1 Safety QR</span>
+                        <span className="text-xs font-bold tracking-widest uppercase">QRdigit — India's #1 Safety QR</span>
                     </div>
                     <h1 className="text-4xl md:text-6xl font-semibold leading-[1.05] tracking-tight mb-6">
                         Humari <span className="text-red-600 italic">Privacy Policy.</span>
@@ -30,7 +30,7 @@ export default function PrivacyPolicyPage() {
                                 1. Hum Kya Data Collect Karte Hain?
                             </h2>
                             <p className="text-slate-500 font-light leading-relaxed mb-4">
-                                Jab aap Q-Raksha QR register karte ho, tab hum aapse sirf kuch basic details maangte hain jaise aapka naam, phone number aur blood group, taki emergency ke time par rescue possible ho sake.
+                                Jab aap QRdigit QR register karte ho, tab hum aapse sirf kuch basic details maangte hain jaise aapka naam, phone number aur blood group, taki emergency ke time par rescue possible ho sake.
                             </p>
                             <ul className="space-y-3">
                                 <li className="flex gap-3 text-slate-600 font-light"><CheckCircle2 className="w-5 h-5 text-green-500 shrink-0" /> Aapke emergency contacts (Bhai, dost, family)</li>

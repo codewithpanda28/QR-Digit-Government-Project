@@ -354,8 +354,8 @@ export default function LoginPage() {
                                             onClick={handleToggleDeactivate}
                                             disabled={isLoading}
                                             className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${userData?.status === 'activated'
-                                                    ? 'bg-white text-red-600 border-2 border-red-100 hover:bg-red-50'
-                                                    : 'bg-green-600 text-white hover:bg-green-700 shadow-lg'
+                                                ? 'bg-white text-red-600 border-2 border-red-100 hover:bg-red-50'
+                                                : 'bg-green-600 text-white hover:bg-green-700 shadow-lg'
                                                 }`}
                                         >
                                             {userData?.status === 'activated' ? 'Deactivate Tag' : 'Activate Tag Now'}

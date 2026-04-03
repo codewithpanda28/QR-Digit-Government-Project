@@ -32,8 +32,8 @@ function RenewalContent() {
         { days: 365, label: '1 Year Protection', price: 299, icon: <ShieldCheck className="w-5 h-5" />, recommended: true }
     ]
 
-    const activePrice = isCustom 
-        ? (Number(customYears) || 0) * BASE_YEARLY_PRICE 
+    const activePrice = isCustom
+        ? (Number(customYears) || 0) * BASE_YEARLY_PRICE
         : (PLANS.find(p => p.days === selectedDays)?.price || 0)
 
     const activeDays = isCustom ? (Number(customYears) || 0) * 365 : selectedDays
@@ -62,8 +62,8 @@ function RenewalContent() {
             if (!res.ok) throw new Error(data.error)
 
             if (isTesting) {
-                 window.location.href = `/api/cashfree/verify?order_id=${data.order_id}&qr_id=${qr_id}&days=${activeDays}&debug_test=true`
-                 return
+                window.location.href = `/api/cashfree/verify?order_id=${data.order_id}&qr_id=${qr_id}&days=${activeDays}&debug_test=true`
+                return
             }
 
             if (!(window as any).Cashfree) await loadCashfreeScript()
@@ -93,9 +93,9 @@ function RenewalContent() {
     return (
         <div className="min-h-screen bg-[#F0F2F5] flex items-center justify-center p-4 md:p-10 font-sans" style={{ fontFamily: "'Outfit', sans-serif" }}>
             <Toaster position="top-right" />
-            
+
             <div className="max-w-4xl w-full grid grid-cols-1 md:grid-cols-2 bg-white rounded-[2rem] shadow-[0_24px_48px_-12px_rgba(0,0,0,0.1)] overflow-hidden border border-slate-100">
-                
+
                 {/* Left side: Plan Selection */}
                 <div className="p-8 md:p-12 bg-slate-50 border-r border-slate-100 space-y-8">
                     <div className="space-y-2">
@@ -148,10 +148,10 @@ function RenewalContent() {
                                     <p className={`text-xs font-bold uppercase tracking-tight ${isCustom ? 'text-slate-800' : 'text-slate-400'}`}>Custom Years Renewal</p>
                                     {isCustom ? (
                                         <div className="flex items-center gap-2 mt-1">
-                                            <input 
-                                                type="number" 
-                                                min="1" 
-                                                placeholder="Qty" 
+                                            <input
+                                                type="number"
+                                                min="1"
+                                                placeholder="Qty"
                                                 className="w-16 bg-white border-2 border-slate-300 rounded-lg px-2 py-1.5 text-sm font-black text-slate-900 outline-none focus:border-slate-800 transition-all placeholder:text-slate-400"
                                                 value={customYears}
                                                 onChange={e => setCustomYears(e.target.value === '' ? '' : parseInt(e.target.value))}
@@ -194,39 +194,39 @@ function RenewalContent() {
                     <div className="space-y-4">
                         <div className="relative">
                             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                            <input 
-                                type="text" placeholder="Owner Name" 
+                            <input
+                                type="text" placeholder="Owner Name"
                                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4.5 pl-12 pr-4 text-sm font-bold text-slate-800 outline-none focus:border-slate-800 transition-all placeholder:text-slate-300 shadow-sm"
-                                value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))}
+                                value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                             />
                         </div>
                         <div className="relative">
                             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                            <input 
-                                type="email" placeholder="Billing Email" 
+                            <input
+                                type="email" placeholder="Billing Email"
                                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4.5 pl-12 pr-4 text-sm font-bold text-slate-800 outline-none focus:border-slate-800 transition-all placeholder:text-slate-300 shadow-sm"
-                                value={form.email} onChange={e => setForm(f => ({...f, email: e.target.value}))}
+                                value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
                             />
                         </div>
                         <div className="relative">
                             <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300" />
-                            <input 
+                            <input
                                 type="tel" placeholder="Phone Number" maxLength={10}
                                 className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4.5 pl-12 pr-4 text-sm font-bold text-slate-800 outline-none focus:border-slate-800 transition-all placeholder:text-slate-300 shadow-sm"
-                                value={form.phone} onChange={e => setForm(f => ({...f, phone: e.target.value.replace(/\D/g, '')}))}
+                                value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value.replace(/\D/g, '') }))}
                             />
                         </div>
                     </div>
 
                     <div className="space-y-4 pt-2">
-                        <button 
+                        <button
                             onClick={() => handlePayment(false)}
                             disabled={loading}
                             className="w-full bg-slate-900 hover:bg-black text-white py-5.5 rounded-2xl font-black text-xs uppercase tracking-[0.25em] shadow-2xl shadow-slate-200 transition-all flex items-center justify-center gap-3 active:scale-[0.98] disabled:opacity-50 group grow-0"
                         >
                             {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <>Pay ₹{activePrice} & Reactivate <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>}
                         </button>
-                        
+
                         <div className="text-center">
                             <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">Secured Payment Gateway</p>
                             {typeof window !== 'undefined' && window.location.hostname === 'localhost' && (

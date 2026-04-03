@@ -134,7 +134,7 @@ function ShopContent() {
                 <div className="max-w-[1200px] mx-auto px-6 text-center space-y-4 md:space-y-6">
                     <div className="inline-flex items-center gap-3 px-5 py-2 bg-red-600 text-white rounded-full shadow-lg mb-6 scale-90 md:scale-100">
                         <Siren className="w-5 h-5 animate-bounce" />
-                        <span className="text-xs font-bold tracking-widest uppercase">Q-Raksha — India's #1 Safety QR</span>
+                        <span className="text-xs font-bold tracking-widest uppercase">QRdigit — India's #1 Safety QR</span>
                     </div>
 
                     <h1 className="text-3xl md:text-7xl font-semibold tracking-tight leading-tight">
@@ -311,7 +311,7 @@ function ShopContent() {
                         Abhi Order Karein — <span className="text-red-500 italic font-light">Kal Safe Raho.</span>
                     </h2>
                     <p className="text-xl font-light text-white/40 leading-relaxed">
-                        Gaon ho ya sheher, Q-Raksha har kisi ki zaroorat hai. Courier se ghar aayega.
+                        Gaon ho ya sheher, QRdigit har kisi ki zaroorat hai. Courier se ghar aayega.
                     </p>
                     <button
                         onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}

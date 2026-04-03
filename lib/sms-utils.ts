@@ -14,7 +14,7 @@ export async function sendEmergencySMS(
             timeZone: 'Asia/Kolkata',
         })
 
-        const message = `🚨 EMERGENCY ALERT! 🚨\n\n${personName} needs immediate help!\n\nLocation: ${locationAddress}\n\nGoogle Maps: ${googleMapsLink}${evidenceLink ? `\n\nVisual Evidence: ${evidenceLink}` : ''}\n\nTime: ${timestamp}\n\nPlease reach immediately or call local emergency services.\n\n- ThinkAIQ Safety Alert`
+        const message = `🚨 EMERGENCY ALERT! 🚨\n\n${personName} needs immediate help!\n\nLocation: ${locationAddress}\n\nGoogle Maps: ${googleMapsLink}${evidenceLink ? `\n\nVisual Evidence: ${evidenceLink}` : ''}\n\nTime: ${timestamp}\n\nPlease reach immediately or call local emergency services.\n\n- QRdigit Safety Alert`
 
         // Call SMS API
         const response = await fetch('/api/sms/send', {

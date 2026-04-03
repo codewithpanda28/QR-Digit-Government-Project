@@ -14,7 +14,7 @@ export default function TermsPage() {
                 <section className="max-w-[1000px] mx-auto px-6 mb-16 text-center">
                     <div className="inline-flex items-center gap-3 px-5 py-2 bg-red-600 text-white rounded-full shadow-lg mb-6">
                         <Siren className="w-5 h-5 animate-bounce" />
-                        <span className="text-xs font-bold tracking-widest uppercase">Q-Raksha — India's #1 Safety QR</span>
+                        <span className="text-xs font-bold tracking-widest uppercase">QRdigit — India's #1 Safety QR</span>
                     </div>
                     <h1 className="text-4xl md:text-6xl font-semibold leading-[1.05] tracking-tight mb-6">
                         Hamaare <span className="text-red-600 italic">Rules & Terms.</span>
@@ -30,7 +30,7 @@ export default function TermsPage() {
                                 Acceptable Use Policy
                             </h2>
                             <p className="text-slate-500 font-light leading-relaxed mb-4">
-                                Aap Q-Raksha ke QR Code tags sirf legal aur safety purposes ke liye use kar sakte hain. Aap in QR tags ko kisi galat maqsad (illegal activity) ke liye istemal nahi kar sakte hain. Aisa karne par aapka account aur access turant ban kar diya jaayega.
+                                Aap QRdigit ke QR Code tags sirf legal aur safety purposes ke liye use kar sakte hain. Aap in QR tags ko kisi galat maqsad (illegal activity) ke liye istemal nahi kar sakte hain. Aisa karne par aapka account aur access turant ban kar diya jaayega.
                             </p>
                         </div>
 
@@ -54,7 +54,7 @@ export default function TermsPage() {
                                 Availability of Service
                             </h2>
                             <p className="text-slate-500 font-light leading-relaxed mb-4">
-                                Hum koshish karenge ki Q-Raksha server 99.9% up-time par rahe. Phir bhi, network problems ya kisi anadekhi technical dikkat ki wajah se SOS notifications aur alerts aane-jaane mein kuch seconds lag sakte hain. System puri tarah online infrastructure par nirbhar hai.
+                                Hum koshish karenge ki QRdigit server 99.9% up-time par rahe. Phir bhi, network problems ya kisi anadekhi technical dikkat ki wajah se SOS notifications aur alerts aane-jaane mein kuch seconds lag sakte hain. System puri tarah online infrastructure par nirbhar hai.
                             </p>
                         </div>
 
@@ -66,7 +66,7 @@ export default function TermsPage() {
                                 Liability Disclaimer
                             </h2>
                             <p className="text-slate-500 font-light leading-relaxed mb-4">
-                                Q-Raksha ek notification aur alert tool hai, medical ya police equivalent nahi hai. Incident ke samay hum alert aur GPS information share karte hain par on-ground recovery local authorities par based hai. Hum har emergency ko physically rokne ka dawa nahi karte, balki time par proper information deliver karte hain.
+                                QRdigit ek notification aur alert tool hai, medical ya police equivalent nahi hai. Incident ke samay hum alert aur GPS information share karte hain par on-ground recovery local authorities par based hai. Hum har emergency ko physically rokne ka dawa nahi karte, balki time par proper information deliver karte hain.
                             </p>
                             <p className="text-slate-500 font-light leading-relaxed mt-4 italic text-sm font-semibold">
                                 * Last Updated On: March 2026<br/>

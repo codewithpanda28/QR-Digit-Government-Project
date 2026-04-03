@@ -14,8 +14,10 @@ const nextConfig: NextConfig = {
   // ✅ Enable gzip/brotli compression
   compress: true,
 
-  // ✅ Turbopack for faster dev (optional, comment out if issues)
-  // experimental: { turbo: {} },
+  // ✅ Fix HMR issues with large ESM libraries (lucide-react, framer-motion)
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion"],
+  },
 
   async headers() {
     return [
