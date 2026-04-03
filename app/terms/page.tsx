@@ -70,7 +70,7 @@ export default function TermsPage() {
                             </p>
                             <p className="text-slate-500 font-light leading-relaxed mt-4 italic text-sm font-semibold">
                                 * Last Updated On: March 2026<br/>
-                                In case of disputes, local jurisdiction (Jharkhand) will be applied. Email: legal@qraksha.in
+                                In case of disputes, local jurisdiction (Jharkhand) will be applied. Email: legal@qrdigit.com
                             </p>
                         </div>
                     </div>

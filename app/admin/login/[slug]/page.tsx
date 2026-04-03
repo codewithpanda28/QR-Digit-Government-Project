@@ -18,11 +18,10 @@ export default function UniqueAdminLogin() {
     const [loadingInfo, setLoadingInfo] = useState(true);
 
     useEffect(() => {
-        // NUCLEAR RESET: If we are visiting a unique login link, 
-        // we MUST clear all previous sessions to prevent data crossover.
+        // RESET: Clear previous regular admin session, but KEEP super_pro_admin_session
+        // to allow impersonation mode to work correctly.
         localStorage.removeItem('admin_session');
-        localStorage.removeItem('super_pro_admin_session');
-
+        
         loadAdminInfo();
     }, [slug]);
 

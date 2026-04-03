@@ -209,6 +209,14 @@ function AdminLayoutContent({
         toast.success('Logged out successfully')
     }
 
+    async function handleStopImpersonating() {
+        localStorage.removeItem('admin_session')
+        // Refresh to apply changes and go back to super-pro dashboard
+        toast.success('Exited Management Mode')
+        router.push('/admin/super-pro')
+        setTimeout(() => window.location.reload(), 100)
+    }
+
     function handleSearch(query: string) {
         setSearchQuery(query)
         const targetPath = '/admin/qrcodes'
@@ -463,9 +471,18 @@ function AdminLayoutContent({
                                             {userRole?.replace(/_/g, ' ') || 'System'}
                                         </p>
                                         {user?.impersonatingName && (
-                                            <p className="text-[8px] font-black text-primary uppercase tracking-tighter bg-primary/10 px-1 rounded mt-0.5">
-                                                Managing: {user.impersonatingName}
-                                            </p>
+                                            <div className="flex flex-col items-end gap-1">
+                                                <p className="text-[8px] font-black text-primary uppercase tracking-tighter bg-primary/10 px-1 rounded mt-0.5">
+                                                    Managing: {user.impersonatingName}
+                                                </p>
+                                                <button 
+                                                    onClick={handleStopImpersonating}
+                                                    className="text-[8px] font-bold text-red-500 hover:text-red-400 uppercase tracking-tighter flex items-center gap-1 group"
+                                                >
+                                                    <LogOut className="w-2 h-2 group-hover:-translate-x-0.5 transition-transform" />
+                                                    Exit Management
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 </div>

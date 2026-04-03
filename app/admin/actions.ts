@@ -522,7 +522,7 @@ export async function generateQRCodes(quantity: number, adminId?: string, isSupe
             currentSequence++;
             const qrId = uuidv4();
             const qrNumber = String(currentSequence).padStart(2, '0');
-            const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.qraksha.in').replace(/\/$/, '');
+            const baseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://www.qrdigit.com').replace(/\/$/, '');
             newQRs.push({
                 generated_by: finalUserId,
                 id: qrId,
