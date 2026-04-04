@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import NextLink from 'next/link'
 import Image from 'next/image'
-import { Menu, X, ShoppingCart, User, LogOut, LayoutDashboard, ChevronDown, Shield } from 'lucide-react'
+import { Menu, X, ShoppingCart, User, LogOut, LayoutDashboard, ChevronDown, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 
@@ -12,13 +12,20 @@ export default function Navbar() {
     const [user, setUser] = useState<any>(null)
     const [profile, setProfile] = useState<{ name: string, photo: string | null } | null>(null)
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
+    const [scrolled, setScrolled] = useState(false)
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setScrolled(window.scrollY > 20)
+        }
+        window.addEventListener('scroll', handleScroll)
+        return () => window.removeEventListener('scroll', handleScroll)
+    }, [])
 
     useEffect(() => {
         const checkUser = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             setUser(session?.user ?? null);
-
-            // Initial load from storage
             const saved = localStorage.getItem('q_raksha_user_profile');
             if (saved) setProfile(JSON.parse(saved));
         };
@@ -54,66 +61,58 @@ export default function Navbar() {
     };
 
     return (
-        <nav className="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-md z-50 border-b-2 border-indigo-600 shadow-sm">
-            <div className="max-w-[1400px] mx-auto px-6 flex items-center justify-between h-20">
-                {/* Logo — priority:true so it loads immediately (above the fold) */}
-                <NextLink href="/" className="group flex items-center gap-3">
-                    <div className="relative">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300 shadow-lg shadow-indigo-200">
-                            <Shield className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
+        <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm border-b border-slate-200/50 py-3' : 'bg-transparent py-5'}`}>
+            <div className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+                
+                {/* Logo */}
+                <NextLink href="/" className="flex items-center gap-2.5 group">
+                    <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center shadow-md shadow-indigo-600/20 group-hover:scale-105 transition-transform">
+                        <ShieldCheck className="w-6 h-6 text-white" />
                     </div>
-                    <div className="flex flex-col">
-                        <span className="text-xl font-bold tracking-tight text-gray-900 group-hover:text-indigo-600 transition-colors">
-                            Q-<span className="text-indigo-600">Raksha</span>
-                        </span>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Smart Safety</span>
-                    </div>
+                    <span className="text-2xl font-black tracking-tight text-slate-900">
+                        QR<span className="text-indigo-600">digit</span>
+                    </span>
                 </NextLink>
 
                 {/* Desktop Nav */}
-                <div className="hidden md:flex items-center gap-10 font-bold text-sm uppercase tracking-widest text-zinc-600">
-                    <NextLink href="/" className="hover:text-indigo-600 transition-colors">Home</NextLink>
-                    <NextLink href="/about" className="hover:text-indigo-600 transition-colors">About Us</NextLink>
+                <div className="hidden md:flex flex-1 items-center justify-center gap-8 font-semibold text-sm text-slate-600">
+                    <NextLink href="/#solutions" className="hover:text-indigo-600 transition-colors">Solutions</NextLink>
                     <NextLink href="/shop" className="hover:text-indigo-600 transition-colors">Products</NextLink>
-                    <NextLink href="/contact" className="hover:text-indigo-600 transition-colors">Contact Us</NextLink>
+                    <NextLink href="/about" className="hover:text-indigo-600 transition-colors">About Us</NextLink>
+                    <NextLink href="/contact" className="hover:text-indigo-600 transition-colors">Contact</NextLink>
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-6">
+                <div className="flex items-center gap-4">
                     {user ? (
                         <div className="relative">
                             <button
                                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                                className="flex items-center gap-2 bg-slate-50 border-2 border-slate-100 px-3 py-1.5 rounded-full hover:border-red-200 transition-all font-bold text-[10px] uppercase tracking-widest text-zinc-900 shadow-sm"
+                                className="flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 rounded-full hover:bg-slate-50 transition-all font-semibold text-sm text-slate-700 shadow-sm"
                             >
-                                <div className="w-8 h-8 md:w-9 md:h-9 bg-indigo-600 rounded-full flex items-center justify-center text-white border-2 border-white shadow-sm overflow-hidden text-xs">
+                                <div className="w-7 h-7 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 overflow-hidden font-bold">
                                     {profile?.photo ? (
-                                        <Image src={profile.photo} alt="P" width={36} height={36} className="w-full h-full object-cover" unoptimized />
+                                        <Image src={profile.photo} alt="Profile" width={28} height={28} className="w-full h-full object-cover" unoptimized />
                                     ) : (
                                         (profile?.name || user.email)?.substring(0, 1).toUpperCase()
                                     )}
                                 </div>
-                                <div className="hidden sm:flex flex-col items-start leading-none gap-1 px-1">
-                                    <span className="text-zinc-400 text-[8px] font-black uppercase tracking-[0.2em]">Active Owner</span>
-                                    <span className="truncate max-w-[100px] text-[11px]">{profile?.name || user.email?.split('@')[0]}</span>
-                                </div>
-                                <ChevronDown className={`w-4 h-4 text-zinc-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                                <span className="hidden sm:block truncate max-w-[100px]">{profile?.name || user.email?.split('@')[0]}</span>
+                                <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
                             </button>
 
                             {isUserMenuOpen && (
-                                <div className="absolute top-12 right-0 w-48 bg-white border-2 border-slate-100 rounded-2xl shadow-xl p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
+                                <div className="absolute top-12 right-0 w-48 bg-white border border-slate-200 rounded-xl shadow-lg p-2 z-50 animate-in fade-in zoom-in-95 duration-200">
                                     <NextLink
                                         href="/login"
-                                        className="flex items-center gap-2 p-3 hover:bg-slate-50 rounded-xl font-bold text-[10px] uppercase tracking-widest text-zinc-600 hover:text-red-600 transition-all"
+                                        className="flex items-center gap-2 p-2 hover:bg-slate-50 rounded-lg font-medium text-sm text-slate-700 transition-all"
                                         onClick={() => setIsUserMenuOpen(false)}
                                     >
-                                        <LayoutDashboard className="w-4 h-4" /> My Dashboard
+                                        <LayoutDashboard className="w-4 h-4 text-slate-400" /> Dashboard
                                     </NextLink>
                                     <button
                                         onClick={handleLogout}
-                                        className="w-full flex items-center gap-2 p-3 hover:bg-red-50 rounded-xl font-bold text-[10px] uppercase tracking-widest text-red-600 transition-all"
+                                        className="w-full flex items-center gap-2 p-2 hover:bg-rose-50 rounded-lg font-medium text-sm text-rose-600 transition-all text-left"
                                     >
                                         <LogOut className="w-4 h-4" /> Sign Out
                                     </button>
@@ -121,15 +120,17 @@ export default function Navbar() {
                             )}
                         </div>
                     ) : (
-                        <NextLink href="/login" className="hidden sm:flex items-center gap-2 text-zinc-900 font-bold text-xs uppercase tracking-widest hover:text-red-600 transition-colors">
-                            <User className="w-4 h-4" /> LOGIN
+                        <NextLink href="/login" className="hidden sm:flex items-center gap-2 text-slate-600 font-semibold text-sm hover:text-indigo-600 transition-colors">
+                            Login
                         </NextLink>
                     )}
-                    <NextLink href="/shop" className="text-red-600 p-2 hover:scale-110 active:scale-90 transition-all">
-                        <ShoppingCart className="w-6 h-6" />
+
+                    <NextLink href="/shop" className="hidden sm:flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-full font-semibold text-sm hover:bg-slate-800 transition-colors shadow-md">
+                        Get Tags
                     </NextLink>
+
                     <button
-                        className="md:hidden text-zinc-600"
+                        className="md:hidden p-2 text-slate-600"
                         onClick={() => setIsMenuOpen(!isMenuOpen)}
                     >
                         {isMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -139,12 +140,24 @@ export default function Navbar() {
 
             {/* Mobile Menu */}
             {isMenuOpen && (
-                <div className="md:hidden bg-white border-t px-6 py-8 space-y-6 shadow-xl absolute w-full left-0 animate-in slide-in-from-top duration-300">
-                    <NextLink href="/" className="block font-black text-sm uppercase tracking-widest" onClick={() => setIsMenuOpen(false)}>Home</NextLink>
-                    <NextLink href="/about" className="block font-black text-sm uppercase tracking-widest" onClick={() => setIsMenuOpen(false)}>About Us</NextLink>
-                    <NextLink href="/shop" className="block font-black text-sm uppercase tracking-widest" onClick={() => setIsMenuOpen(false)}>Products</NextLink>
-                    <NextLink href="/contact" className="block font-black text-sm uppercase tracking-widest" onClick={() => setIsMenuOpen(false)}>Contact Us</NextLink>
-                    <NextLink href="/login" className="block text-red-600 font-black text-sm uppercase tracking-widest" onClick={() => setIsMenuOpen(false)}>Login</NextLink>
+                <div className="md:hidden bg-white border-t border-slate-100 px-6 py-6 space-y-4 shadow-xl absolute w-full left-0 top-full">
+                    <div className="flex flex-col space-y-1">
+                        <NextLink href="/#solutions" className="px-4 py-3 font-semibold text-slate-700 hover:bg-slate-50 rounded-xl" onClick={() => setIsMenuOpen(false)}>Solutions</NextLink>
+                        <NextLink href="/shop" className="px-4 py-3 font-semibold text-slate-700 hover:bg-slate-50 rounded-xl" onClick={() => setIsMenuOpen(false)}>Products</NextLink>
+                        <NextLink href="/about" className="px-4 py-3 font-semibold text-slate-700 hover:bg-slate-50 rounded-xl" onClick={() => setIsMenuOpen(false)}>About Us</NextLink>
+                        <NextLink href="/contact" className="px-4 py-3 font-semibold text-slate-700 hover:bg-slate-50 rounded-xl" onClick={() => setIsMenuOpen(false)}>Contact</NextLink>
+                    </div>
+                    
+                    <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
+                        {!user && (
+                            <NextLink href="/login" className="px-4 py-3 font-semibold text-slate-700 text-center border border-slate-200 rounded-xl hover:bg-slate-50" onClick={() => setIsMenuOpen(false)}>
+                                Login
+                            </NextLink>
+                        )}
+                        <NextLink href="/shop" className="px-4 py-3 font-semibold text-white bg-indigo-600 text-center rounded-xl hover:bg-indigo-700 flex items-center justify-center gap-2" onClick={() => setIsMenuOpen(false)}>
+                             <ShoppingCart className="w-4 h-4" /> Get Safety Tags
+                        </NextLink>
+                    </div>
                 </div>
             )}
         </nav>
