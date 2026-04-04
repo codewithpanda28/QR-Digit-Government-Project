@@ -30,11 +30,17 @@ export default function ScanPage() {
     const [emergencyContacts, setEmergencyContacts] = useState<EmergencyContact[]>([])
     const [loading, setLoading] = useState(true)
 
+    const [securityAnswers, setSecurityAnswers] = useState<Record<number, string>>({})
+    const [isUnlocked, setIsUnlocked] = useState(false)
+    const [pendingDocUrl, setPendingDocUrl] = useState<string | null>(null)
+    const [pendingEditMode, setPendingEditMode] = useState(false)
+
     // Emergency State
     const [geoData, setGeoData] = useState<{ lat: number; lng: number; accuracy?: number } | null>(null)
     const [sendingAlert, setSendingAlert] = useState(false)
     const [isCapturing, setIsCapturing] = useState(false)
     const [autoCallInitiated, setAutoCallInitiated] = useState(false)
+    const [sirenActive, setSirenActive] = useState(false)
 
     // Security State
     const [isLocked, setIsLocked] = useState(false)
@@ -42,10 +48,6 @@ export default function ScanPage() {
     const [showForgotModal, setShowForgotModal] = useState(false)
     const [pinInput, setPinInput] = useState('')
     const [securityQuestions, setSecurityQuestions] = useState<any[]>([])
-    const [securityAnswers, setSecurityAnswers] = useState<Record<number, string>>({})
-    const [isUnlocked, setIsUnlocked] = useState(false)
-    const [pendingDocUrl, setPendingDocUrl] = useState<string | null>(null)
-    const [pendingEditMode, setPendingEditMode] = useState(false)
 
     // Edit State
     const [isEditing, setIsEditing] = useState(false)
@@ -398,10 +400,10 @@ export default function ScanPage() {
         return photos
     }
 
-    async function handleEmergencyAlert(incidentLabel = 'SOS EMERGENCY', isSilent = false, customMsg = '', skipWhatsApp = false) {
+    async function handleEmergencyAlert(incidentLabel = 'SOS EMERGENCY', isSilent = false, customMsg = '', skipWhatsApp = false, isRealCall = false) {
         // MANDATORY: Check if GPS is enabled/permitted before proceeding
         let tId: any = null;
-        if (!isSilent) tId = toast.loading(`Calibrating GPS... ${geoData?.accuracy ? `(${Math.round(geoData.accuracy)}m accuracy)` : ''}`)
+        if (!isSilent) tId = toast.loading('Calibrating GPS Signal...')
 
         // 🚀 SUPER FAST GPS: Use background cache if available to skip 3-5sec delay!
         let loc = geoData
@@ -487,7 +489,8 @@ export default function ScanPage() {
                         lat: loc.lat,
                         lng: loc.lng,
                         status: 'active',
-                        skip_whatsapp: skipWhatsApp
+                        skip_whatsapp: skipWhatsApp,
+                        evidence_photos: photos || []
                     })
                 }).catch(e => console.error("Alert Update Failed:", e))
             }
@@ -514,19 +517,16 @@ _Automatic Safety Alert by Q-Raksha_`
             // 🚀 FAST-TRACK WHATSAPP: Removed from here because it's now handled synchronously in the onClick handler
             // to bypass modern browser popup blockers which kill async window.open calls.
 
-            // 4. Fire Client-Side WhatsApp Blast (Bypass silent for WhatsApp if contacts exist)
-            // 4. Fire Client-Side WhatsApp Blast for ADDITIONAL contacts
-            // (Note: Contact [0] is handled synchronously by the button click to bypass popup blockers)
-            if (!skipWhatsApp && emergencyContacts.length > 1) {
-                // We start from index 1 because index 0 was already handled by the UI click
-                emergencyContacts.slice(1).forEach((contact, index) => {
+            // 4. Fire Client-Side WhatsApp Blast (Handled AFTER evidence is ready)
+            if (!skipWhatsApp && emergencyContacts.length > 0) {
+                emergencyContacts.forEach((contact, index) => {
                     const cleanPhone = contact.phone.replace(/\D/g, '')
                     const waUrl = `https://wa.me/${cleanPhone}?text=${encodeURIComponent(alertMsg)}`
 
                     setTimeout(() => {
                         toast(`Dispatching to ${contact.name}...`, { icon: '📲' });
                         window.open(waUrl, '_blank')
-                    }, (index + 1) * 2000) // 2s delay between each to reduce browser blocking
+                    }, index * 2000) // Sequential delay to reduce browser blocking
                 })
             }
 
@@ -577,6 +577,11 @@ _Automatic Safety Alert by Q-Raksha_`
 
                             // Trigger Automated Voice Calls (ONLY FOR MAIN SOS - NOT FOR SILENT TOOLS)
                             if (!isSilent) {
+                                // 💡 IF isRealCall is true, we use the Bridge API to connect Scanner directly to Family
+                                // We first play the recording on the bridge leg.
+                                // We use the user_phone state which is synced with localStorage
+                                const savedPhone = localStorage.getItem('safety_user_phone');
+
                                 fetch('/api/emergency/call-contacts', {
                                     method: 'POST',
                                     mode: 'cors',
@@ -584,7 +589,9 @@ _Automatic Safety Alert by Q-Raksha_`
                                     body: JSON.stringify({
                                         contacts: contactNumbers,
                                         ownerName: qrDetails.full_name,
-                                        incidentType: incidentLabel
+                                        incidentType: incidentLabel,
+                                        isRealCall: isRealCall,
+                                        scannerNumber: savedPhone // Required for bridging
                                     })
                                 }).then(async res => {
                                     const callData = await res.json();
@@ -610,13 +617,13 @@ _Automatic Safety Alert by Q-Raksha_`
     }
 
     // Auto-Alert Function for Tools
-    const triggerToolAutoAlert = async (toolName: string, forcePriority = false, skipWhatsApp = false) => {
+    const triggerToolAutoAlert = async (toolName: string, forcePriority = false, skipWhatsApp = false, isRealCall = false) => {
         if (!geoData) {
             toast.error('Location required for safety logs.');
             setShowLocationHelp(true);
             return { id: null, photos: [] };
         }
-        return await handleEmergencyAlert(`${toolName}`, !forcePriority, '', skipWhatsApp)
+        return await handleEmergencyAlert(`${toolName}`, !forcePriority, '', skipWhatsApp, isRealCall)
     }
 
     // --- LOCATION HELPER (Mobile Optimized) ---
@@ -847,8 +854,6 @@ _Automatic Safety Alert by Q-Raksha_`
     const [callingStatus, setCallingStatus] = useState<'idle' | 'calling' | 'connected'>('idle')
     const [showLocationHelp, setShowLocationHelp] = useState(false)
 
-    // --- SIREN STATE ---
-    const [sirenActive, setSirenActive] = useState(false)
     const sirenRef = useRef<{ ctx: AudioContext; osc: OscillatorNode; gain: GainNode } | null>(null)
     const sirenIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -2155,7 +2160,7 @@ _Sent via Q-Raksha Secure Dispatch_`
                         ].map((h, i) => (
                             <button key={i} onClick={() => {
                                 // Trace & capture evidence but SKIP WhatsApp
-                                triggerToolAutoAlert(`HELPLINE: ${h.num} (${h.label})`, false, true);
+                                triggerToolAutoAlert(`HELPLINE: ${h.num} (${h.label})`, false, true, false);
                                 window.location.href = `tel:${h.num}`;
                             }} className={`${h.color} rounded-2xl p-4 flex flex-col items-center justify-center gap-1.5 shadow-lg shadow-black/5 active:scale-95 transition-all cursor-pointer`}>
                                 <h.icon className="w-4 h-4 text-white/50 mb-0.5" />
@@ -2174,10 +2179,10 @@ _Sent via Q-Raksha Secure Dispatch_`
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         {[
-                            { label: 'Take Video', sub: 'Evidence Camera', icon: Video, action: () => openCamera('video'), color: 'text-blue-500', bg: 'bg-white' },
-                            { label: 'Take Photo', sub: 'Snap Evidence', icon: Camera, action: () => openCamera('photo'), color: 'text-purple-500', bg: 'bg-white' },
-                            { label: isRecordingAudio ? 'Recording...' : 'Audio Rec', sub: 'Surrounding', icon: Volume2, action: () => isRecordingAudio ? stopAudioEvidence() : (qrCode && startAudioEvidence(qrCode.id)), color: isRecordingAudio ? 'text-red-500' : 'text-blue-400', bg: 'bg-white' },
-                            { label: 'Notify Family', sub: 'AI Voice Call', icon: Phone, action: () => { triggerToolAutoAlert('Manual AI Call Initiated', true, false); toast.success('Calling Family...'); }, color: 'text-green-600', bg: 'bg-white' },
+                            { label: 'Take Video', sub: 'Evidence Camera', icon: Video, action: () => { openCamera('video'); triggerToolAutoAlert('Take Video / Evidence Camera', true, false, false); }, color: 'text-blue-500', bg: 'bg-white' },
+                            { label: 'Take Photo', sub: 'Snap Evidence', icon: Camera, action: () => { openCamera('photo'); triggerToolAutoAlert('Take Photo / Snap Evidence', true, false, false); }, color: 'text-purple-500', bg: 'bg-white' },
+                            { label: isRecordingAudio ? 'Recording...' : 'Audio Rec', sub: 'Surrounding', icon: Volume2, action: () => { isRecordingAudio ? stopAudioEvidence() : (qrCode && startAudioEvidence(qrCode.id)); triggerToolAutoAlert('Audio Rec / Surrounding', true, false, false); }, color: isRecordingAudio ? 'text-red-500' : 'text-blue-400', bg: 'bg-white' },
+                            { label: 'Notify Family', sub: 'AI Voice Call', icon: Phone, action: () => { triggerToolAutoAlert('Notify Family / AI Voice Call', true, false, false); toast.success('Calling Family...'); }, color: 'text-green-600', bg: 'bg-white' },
                         ].map((tool, i) => (
                             <button key={i} onClick={(e) => { e.preventDefault(); tool.action(); }}
                                 className={`bg-white border border-slate-100 rounded-3xl p-3.5 flex items-center gap-3 transition-all active:scale-95 cursor-pointer hover:border-slate-300 ${tool.label === 'Recording...' ? 'ring-2 ring-red-100 border-red-200' : ''}`}>
@@ -2220,10 +2225,10 @@ _Sent via Q-Raksha Secure Dispatch_`
                     <button
                         onClick={(e) => {
                             e.preventDefault();
-                            setShowIncidentModal(true);
                             if (qrCode && !prefetchEvidencePromise.current) {
                                 prefetchEvidencePromise.current = captureAndUploadEvidence(qrCode.id, undefined);
                             }
+                            handleEmergencyAlert('SOS TRIGGER', false, '', false, true);
                         }}
                         disabled={sendingAlert}
                         className="w-full bg-gradient-to-br from-[#DC2626] to-[#991B1B] rounded-[2.5rem] p-6 flex flex-col items-center justify-center gap-1 shadow-[0_20px_50px_rgba(220,38,38,0.3)] border-b-6 border-red-900 active:translate-y-1 active:border-b-0 transition-all relative overflow-hidden"
@@ -2521,13 +2526,11 @@ _Sent via Q-Raksha Secure Dispatch_`
                                 <button key={inc.id}
                                     onClick={async e => {
                                         e.preventDefault();
-                                        const loc = await fetchgeoData().catch(() => geoData);
-                                        if (emergencyContacts[0] && loc) {
-                                            const msg = `🚨 *${inc.label.toUpperCase()}* EMERGENCY!\n\nName: *${qrDetails?.full_name}*\n📍 Location: https://www.google.com/maps?q=${loc.lat},${loc.lng}`;
-                                            window.open(`https://wa.me/${emergencyContacts[0].phone.replace(/\D/g, '')}?text=${encodeURIComponent(msg)}`, '_blank');
-                                        }
+                                        await fetchgeoData().catch(() => geoData);
                                         setShowIncidentModal(false);
-                                        handleEmergencyAlert(inc.label, false, customIncidentMsg);
+                                        // 🛑 CRITICAL: This is the MAIN SOS, so it gets both Recording and Real Call
+                                        // Now it also handles WhatsApp opening AFTER evidence is captured
+                                        handleEmergencyAlert(inc.label, false, customIncidentMsg, false, true);
                                     }}
                                     className={`w-full py-4 rounded-xl text-white font-bold text-sm active:scale-[0.98] transition-all shadow-md ${inc.color}`}>
                                     {inc.label}

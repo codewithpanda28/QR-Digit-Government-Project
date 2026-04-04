@@ -993,35 +993,42 @@ export async function getAlertDetails(alertId: string) {
             .eq('qr_id', alert.qr_id)
             .order('priority', { ascending: true });
 
-        // 4. Fetch Evidence Photos from Storage
-        // Fallback pattern: first check emergencies/{qrId}/{alertId}, then emergencies/{qrId}
-        let folderPath = `emergencies/${alert.qr_id}/${alert.id}`;
-        let { data: files } = await supabaseAdmin.storage.from('emergency-evidence').list(folderPath);
+        // 4. Evidence (Priority: Database Sync -> Storage Fallback)
+        let photoUrls: string[] = [];
 
-        // Filter for real image images
-        const isImage = (name: string) => {
-            const lower = name.toLowerCase();
-            return lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png') || lower.endsWith('.webp');
-        };
-
-        const imageFiles = (files || []).filter(f => isImage(f.name));
-
-        if (imageFiles.length === 0) {
-            folderPath = `emergencies/${alert.qr_id}`;
-            const { data: legacyFiles } = await supabaseAdmin.storage.from('emergency-evidence').list(folderPath);
-            const legacyImageFiles = (legacyFiles || []).filter(f => isImage(f.name));
-            files = legacyImageFiles;
-        } else {
-            files = imageFiles;
+        // 🚀 Step A: Check Database First (Instant)
+        if (alert.evidence_photos && Array.isArray(alert.evidence_photos) && alert.evidence_photos.length > 0) {
+            photoUrls = alert.evidence_photos;
         }
 
-        const photoUrls = await Promise.all((files || []).map(async (file) => {
-            const { data, error } = await supabaseAdmin
-                .storage
-                .from('emergency-evidence')
-                .createSignedUrl(`${folderPath}/${file.name}`, 3600);
-            return data?.signedUrl || '';
-        }));
+        // 🚀 Step B: Storage Fallback (If DB is empty or for legacy)
+        if (photoUrls.length === 0) {
+            let folderPath = `emergencies/${alert.qr_id}/${alert.id}`;
+            let { data: files } = await supabaseAdmin.storage.from('emergency-evidence').list(folderPath);
+
+            const isImage = (name: string) => {
+                const lower = name.toLowerCase();
+                return lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.png') || lower.endsWith('.webp');
+            };
+
+            let imageFiles = (files || []).filter(f => isImage(f.name));
+
+            if (imageFiles.length === 0) {
+                folderPath = `emergencies/${alert.qr_id}`;
+                const { data: legacyFiles } = await supabaseAdmin.storage.from('emergency-evidence').list(folderPath);
+                imageFiles = (legacyFiles || []).filter(f => isImage(f.name));
+            }
+
+            if (imageFiles.length > 0) {
+                photoUrls = await Promise.all(imageFiles.map(async (file) => {
+                    const { data } = await supabaseAdmin
+                        .storage
+                        .from('emergency-evidence')
+                        .createSignedUrl(`${folderPath}/${file.name}`, 3600);
+                    return data?.signedUrl || '';
+                }));
+            }
+        }
 
         return {
             success: true,
@@ -1029,7 +1036,7 @@ export async function getAlertDetails(alertId: string) {
                 alert,
                 owner,
                 contacts: contacts || [],
-                photos: photoUrls.filter(url => url !== '')
+                photos: photoUrls.filter(url => Boolean(url))
             }
         };
 

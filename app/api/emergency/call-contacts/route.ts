@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 
 export async function POST(req: Request) {
     try {
-        const { contacts, ownerName, incidentType } = await req.json()
+        const { contacts, ownerName, incidentType, isRealCall, scannerNumber } = await req.json()
 
         if (!contacts || !Array.isArray(contacts)) {
             return NextResponse.json({ error: 'Missing numbers' }, { status: 400 })
@@ -19,34 +19,41 @@ export async function POST(req: Request) {
         const secret = process.env.TELECMI_APP_SECRET
         const fromNumber = process.env.TELECMI_CALLER_ID
 
-        console.log('[DEBUG] TeleCMI Trigger:', { appId, secret: secret ? '***' : 'MISSING', from: fromNumber })
+        console.log('[DEBUG] TeleCMI Trigger:', { appId, secret: secret ? '***' : 'MISSING', from: fromNumber, isRealCall, scanner: scannerNumber })
 
         if (!appId || !secret || !fromNumber) {
             console.error('[ERROR] TeleCMI configuration missing in .env')
             return NextResponse.json({ success: true, message: 'Simulation: Calls triggered' })
         }
 
-        const virtualNumberInt = parseInt(fromNumber.replace(/\D/g, ''))
-
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || `https://${req.headers.get('host')}`
+        const appUrl = (process.env.NEXT_PUBLIC_APP_URL || `https://${req.headers.get('host')}`).replace(/\/$/, '')
         const audioUrl = `${appUrl}/Call/EmergencyCall.mp3`
 
-        // Call each contact and play an emergency message/siren
+        const scannerFormatted = scannerNumber ? formatNumber(scannerNumber) : null;
+        const virtualNumberInt = parseInt(fromNumber.replace(/\D/g, ''))
+
+        // Call each contact
         const scanResults = await Promise.all(contacts.map(async (phone) => {
             const formatted = formatNumber(phone)
-            console.log(`[DEBUG] Attempting call to contact: ${formatted}`)
+            
+            // 💡 DUAL LOGIC:
+            // 1. Play Recording (Alert)
+            // 2. IF isRealCall + scannerNumber exists, then BRIDGE the call to the person who scanned
+            
+            const pcmoActions: any[] = [
+                {
+                    action: "play",
+                    file_url: audioUrl,
+                    volume: 1.0 // Set volume to maximum (Range: 0.1 to 1.0)
+                }
+            ];
 
             const apiBody = {
                 appid: parseInt(appId),
                 secret: secret,
-                from: Number(fromNumber.replace(/\D/g, '')), // Must be number for TeleCMI
-                to: Number(formatted),                        // Must be number for TeleCMI
-                pcmo: [
-                    {
-                        action: "play",
-                        file_url: audioUrl
-                    }
-                ]
+                from: virtualNumberInt,
+                to: Number(formatted),
+                pcmo: pcmoActions
             }
 
             try {

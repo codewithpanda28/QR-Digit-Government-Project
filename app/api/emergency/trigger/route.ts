@@ -23,7 +23,9 @@ export async function POST(request: Request) {
                 .update({
                     latitude: lat,
                     longitude: lng,
-                    location_address: address
+                    location_address: address,
+                    evidence_photos: body.evidence_photos || [],
+                    evidence_video: body.evidence_video || null
                 })
                 .eq('id', alert_id)
                 .select()

@@ -924,7 +924,16 @@ function AlertColumn({ alert, qrId }: { alert: any; qrId: string }) {
         let retryCount = 0;
         const fetchEvidence = async () => {
             try {
-                // Determine images and audio for this specific alert
+                // 🚀 PRIORITY 1: Check if Database already has the links (New Sync System)
+                if (alert.evidence_photos && Array.isArray(alert.evidence_photos) && alert.evidence_photos.length > 0) {
+                    setImages(alert.evidence_photos);
+                    setLoading(false);
+                    // If we have DB photos, we might still want to check for audio/video from storage or DB
+                    if (alert.evidence_video) setVideoUrl(alert.evidence_video);
+                    // Continue to check storage for audio specifically if not in DB
+                }
+
+                // Determine images and audio for this specific alert from Storage
                 let finalPath = `emergencies/${qrId}/${alert.id}`;
                 let { data: files } = await supabase.storage.from("emergency-evidence").list(finalPath, { limit: 50, sortBy: { column: 'name', order: 'desc' } });
 
@@ -945,14 +954,14 @@ function AlertColumn({ alert, qrId }: { alert: any; qrId: string }) {
                 const alertAgeMs = Date.now() - new Date(alert.created_at || Date.now()).getTime();
                 const isVeryRecent = alertAgeMs < 300000; // 5 minutes
 
-                if (validFiles.length === 0 && isVeryRecent && retryCount < 8) {
+                if (validFiles.length === 0 && isVeryRecent && retryCount < 8 && images.length === 0) {
                     retryCount++;
                     setTimeout(fetchEvidence, 4000);
                     return;
                 }
 
                 // LEGACY FALLBACK: Only if no specific files found AND alert is old
-                if (validFiles.length === 0 && !isVeryRecent) {
+                if (validFiles.length === 0 && !isVeryRecent && images.length === 0) {
                     finalPath = `emergencies/${qrId}`;
                     const { data: legacyFiles } = await supabase.storage.from("emergency-evidence").list(finalPath, { limit: 50, sortBy: { column: 'name', order: 'desc' } });
 
@@ -968,27 +977,25 @@ function AlertColumn({ alert, qrId }: { alert: any; qrId: string }) {
                 if (validFiles && validFiles.length > 0) {
                     // Fetch signed URLs instead of public since bucket is likely private
                     const imageFiles = validFiles.filter(f => isImageFile(f.name));
-                    const signedImageUrls = await Promise.all(imageFiles.map(async (file) => {
-                        const { data } = await supabase.storage.from("emergency-evidence").createSignedUrl(`${finalPath}/${file.name}`, 3600);
-                        return data?.signedUrl || null;
-                    }));
-                    setImages(signedImageUrls.filter(Boolean) as string[]);
+                    if (imageFiles.length > 0 && images.length === 0) {
+                        const signedImageUrls = await Promise.all(imageFiles.map(async (file) => {
+                            const { data } = await supabase.storage.from("emergency-evidence").createSignedUrl(`${finalPath}/${file.name}`, 3600);
+                            return data?.signedUrl || null;
+                        }));
+                        setImages(signedImageUrls.filter(Boolean) as string[]);
+                    }
 
                     const audioFile = validFiles.find(f => isAudioFile(f.name));
-                    if (audioFile) {
+                    if (audioFile && !audioUrl) {
                         const { data } = await supabase.storage.from("emergency-evidence").createSignedUrl(`${finalPath}/${audioFile.name}`, 3600);
                         if (data) setAudioUrl(data.signedUrl);
                     }
 
                     const videoFile = validFiles.find(f => isVideoFile(f.name));
-                    if (videoFile) {
+                    if (videoFile && !videoUrl) {
                         const { data } = await supabase.storage.from("emergency-evidence").createSignedUrl(`${finalPath}/${videoFile.name}`, 3600);
                         if (data) setVideoUrl(data.signedUrl);
                     }
-                } else {
-                    setImages([]);
-                    setAudioUrl(null);
-                    setVideoUrl(null);
                 }
             } catch (e) {
                 console.error("Evidence load failed", e);
