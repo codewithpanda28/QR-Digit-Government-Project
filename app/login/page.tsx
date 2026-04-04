@@ -12,6 +12,7 @@ export default function LoginPage() {
     const [otp, setOtp] = useState(["", "", "", "", "", ""]); // Restored to 6, as Supabase Auth default is 6. 4 is unsupported.
     const [isLoading, setIsLoading] = useState(false);
     const [userData, setUserData] = useState<any>(null);
+    const [activeAssetIndex, setActiveAssetIndex] = useState(0);
     const [alertPageIndex, setAlertPageIndex] = useState(0);
     const [viewAlert, setViewAlert] = useState<any>(null);
     const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
@@ -91,13 +92,14 @@ export default function LoginPage() {
                 throw new Error(error || "Unknown error");
             }
 
-            if (data) {
+            if (data && data.length > 0) {
                 setUserData(data);
 
                 // Persist basic info for Navbar
+                const firstProfile = data[0];
                 const userProfile = {
-                    name: data.qr_details?.[0]?.full_name || data.qr_details?.[0]?.owner_name || userEmail.split('@')[0],
-                    photo: data.qr_details?.[0]?.profile_image_url || null
+                    name: firstProfile.qr_details?.[0]?.full_name || firstProfile.qr_details?.[0]?.owner_name || userEmail.split('@')[0],
+                    photo: firstProfile.qr_details?.[0]?.profile_image_url || null
                 };
                 localStorage.setItem('q_raksha_user_profile', JSON.stringify(userProfile));
                 window.dispatchEvent(new Event('storage')); // Trigger update in other tabs/components
@@ -115,18 +117,20 @@ export default function LoginPage() {
 
     const handleToggleDeactivate = async () => {
         if (!userData || userData === 'NO_DATA') return;
+        const activeItem = Array.isArray(userData) ? userData[activeAssetIndex] : userData;
+        if (!activeItem) return;
 
-        const confirmMsg = userData.status === 'activated'
+        const confirmMsg = activeItem.status === 'activated'
             ? "Are you sure you want to DEACTIVATE your QR tag? Safety features will stop working."
             : "Re-activate your QR tag now?";
 
         if (!confirm(confirmMsg)) return;
 
         setIsLoading(true);
-        const res = await toggleQRStatus(userData.id, userData.status);
+        const res = await toggleQRStatus(activeItem.id, activeItem.status);
         if (res.success) {
             toast.success(`QR Tag is now ${res.newStatus === 'activated' ? 'Active' : 'Suspended'}`);
-            loadUserData(userData.activated_by || userData.managed_by || email, email); // Use any valid id and re-fetch
+            loadUserData(activeItem.activated_by || activeItem.managed_by || email, email); // Use any valid id and re-fetch
         } else {
             toast.error(res.error || "Failed to update status");
         }
@@ -136,22 +140,30 @@ export default function LoginPage() {
     // Real-time Subscriptions for Dashboard
     useEffect(() => {
         if (userData && userData !== 'NO_DATA' && step === "DASHBOARD") {
+            const activeItem = Array.isArray(userData) ? userData[activeAssetIndex] : userData;
+            if (!activeItem) return;
+
             // --- 1. REAL-TIME RADAR (FAST) ---
             const channel = supabase
-                .channel(`dashboard_updates_${userData.id}`)
+                .channel(`dashboard_updates_${activeItem.id}`)
                 .on(
                     'postgres_changes',
-                    { event: 'INSERT', schema: 'public', table: 'emergency_alerts', filter: `qr_id=eq.${userData.id}` },
+                    { event: 'INSERT', schema: 'public', table: 'emergency_alerts', filter: `qr_id=eq.${activeItem.id}` },
                     (payload) => {
                         console.log('📡 RADAR DETECTED NEW SIGNAL:', payload.new);
                         setUserData((current: any) => {
                             if (!current || current === 'NO_DATA') return current;
-                            if (current.emergency_alerts?.some((a: any) => a.id === payload.new.id)) return current;
-                            const freshAlerts = [payload.new, ...(current.emergency_alerts || [])];
-                            return { ...current, emergency_alerts: freshAlerts.sort((a, b) => (b.created_at || '') > (a.created_at || '') ? 1 : -1) };
+                            const curArr = Array.isArray(current) ? current : [current];
+                            const updatedArr = curArr.map((item: any, idx: number) => {
+                                if (idx !== activeAssetIndex) return item;
+                                if (item.emergency_alerts?.some((a: any) => a.id === payload.new.id)) return item;
+                                const freshAlerts = [payload.new, ...(item.emergency_alerts || [])];
+                                return { ...item, emergency_alerts: freshAlerts.sort((a, b) => (b.created_at || '') > (a.created_at || '') ? 1 : -1) };
+                            });
+                            return updatedArr;
                         });
                         try {
-                            const audio = new Audio('https://www.soundjay.com/buttons/beep-01a.mp3');
+                            const audio = new window.Audio('https://www.soundjay.com/buttons/beep-01a.mp3');
                             audio.volume = 0.5;
                             audio.play().catch(() => { });
                         } catch (ae) { }
@@ -160,15 +172,17 @@ export default function LoginPage() {
                 )
                 .on(
                     'postgres_changes',
-                    { event: 'UPDATE', schema: 'public', table: 'emergency_alerts', filter: `qr_id=eq.${userData.id}` },
+                    { event: 'UPDATE', schema: 'public', table: 'emergency_alerts', filter: `qr_id=eq.${activeItem.id}` },
                     (payload) => {
-                        console.log('📡 RADAR PATCHED SIGNAL:', payload.new);
                         setUserData((current: any) => {
                             if (!current || current === 'NO_DATA') return current;
-                            const updatedAlerts = current.emergency_alerts?.map((a: any) =>
-                                a.id === payload.new.id ? payload.new : a
-                            );
-                            return { ...current, emergency_alerts: updatedAlerts };
+                            const curArr = Array.isArray(current) ? current : [current];
+                            const updatedArr = curArr.map((item: any, idx: number) => {
+                                if (idx !== activeAssetIndex) return item;
+                                const updatedAlerts = item.emergency_alerts?.map((a: any) => a.id === payload.new.id ? payload.new : a);
+                                return { ...item, emergency_alerts: updatedAlerts };
+                            });
+                            return updatedArr;
                         });
                     }
                 )
@@ -179,14 +193,19 @@ export default function LoginPage() {
                 const { data: freshAlerts } = await supabase
                     .from('emergency_alerts')
                     .select('*')
-                    .eq('qr_id', userData.id)
+                    .eq('qr_id', activeItem.id)
                     .order('created_at', { ascending: false })
                     .limit(30);
 
                 if (freshAlerts) {
                     setUserData((current: any) => {
                         if (!current || current === 'NO_DATA') return current;
-                        return { ...current, emergency_alerts: freshAlerts };
+                        const curArr = Array.isArray(current) ? current : [current];
+                        const updatedArr = curArr.map((item: any, idx: number) => {
+                            if (idx !== activeAssetIndex) return item;
+                            return { ...item, emergency_alerts: freshAlerts };
+                        });
+                        return updatedArr;
                     });
                 }
             }, 15000);
@@ -196,7 +215,7 @@ export default function LoginPage() {
                 clearInterval(pollInterval);
             };
         }
-    }, [userData?.id, step]);
+    }, [userData, step, activeAssetIndex]);
 
     // Removed standalone loadEvidenceImages as it is now per-alert
 
@@ -229,10 +248,12 @@ export default function LoginPage() {
     };
 
     if (step === "DASHBOARD") {
-        const details = userData && userData !== 'NO_DATA' && userData.qr_details?.length > 0 ? userData.qr_details[0] : null;
-        const rawAlerts = userData && userData !== 'NO_DATA' && userData.emergency_alerts ? userData.emergency_alerts : [];
+        const activeItem = userData && userData !== 'NO_DATA' && Array.isArray(userData) ? userData[activeAssetIndex] : userData;
+
+        const details = activeItem && activeItem !== 'NO_DATA' && activeItem.qr_details?.length > 0 ? activeItem.qr_details[0] : null;
+        const rawAlerts = activeItem && activeItem !== 'NO_DATA' && activeItem.emergency_alerts ? activeItem.emergency_alerts : [];
         // Sort alerts: Newest First
-        const contacts = userData && userData !== 'NO_DATA' && userData.emergency_contacts ? userData.emergency_contacts : [];
+        const contacts = activeItem && activeItem !== 'NO_DATA' && activeItem.emergency_contacts ? activeItem.emergency_contacts : [];
         // Sort alerts: Absolute Newest First (Descending Lock)
         const sortedAlerts = [...rawAlerts].sort((a: any, b: any) =>
             (b.created_at || '') > (a.created_at || '') ? 1 : -1
@@ -272,7 +293,7 @@ export default function LoginPage() {
             if (match) {
                 setViewAlert(match);
             } else {
-                const target = userData?.qr_number || details?.id;
+                const target = activeItem?.qr_number || details?.id;
                 window.open(`/scan/${target}?auto=${autoParam}`, '_blank');
                 toast.success(`Broadcasting Remote Request - Initializing ${toolName}`);
             }
@@ -296,6 +317,25 @@ export default function LoginPage() {
                 </nav>
 
                 <main className="max-w-[1400px] mx-auto px-4 py-8 md:py-12">
+                    {Array.isArray(userData) && userData.length > 1 && (
+                        <div className="mb-8 p-4 bg-white rounded-2xl border border-slate-200 flex gap-3 overflow-x-auto custom-scrollbar shadow-sm">
+                            {userData.map((u: any, idx: number) => {
+                                const qDetails = u.qr_details?.[0] || {};
+                                const name = qDetails.full_name || qDetails.owner_name || `Tag ${idx + 1}`;
+                                return (
+                                    <button
+                                        key={u.id || idx}
+                                        onClick={() => setActiveAssetIndex(idx)}
+                                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${activeAssetIndex === idx ? 'bg-red-600 text-white shadow-md' : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100 hover:text-slate-900'}`}
+                                    >
+                                        <Shield className={`w-4 h-4 ${activeAssetIndex === idx ? 'text-white' : 'text-slate-400'}`} />
+                                        {name}
+                                    </button>
+                                );
+                            })}
+                        </div>
+                    )}
+
                     {userData === 'NO_DATA' ? (
                         <div className="text-center py-20 bg-white rounded-3xl shadow-sm border border-gray-100">
                             <Shield className="w-16 h-16 text-gray-300 mx-auto mb-4" />

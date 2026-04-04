@@ -95,10 +95,10 @@ export default function Footer() {
                     
                     <div className="flex flex-col items-center lg:items-end gap-3 text-[10px] text-zinc-400 font-black uppercase tracking-[0.4em]">
                         <p>© 2026 Q-RAKSHA | MISSION-CRITICAL OPS CONTROL</p>
-                        <p className="flex items-center gap-2">
-                             POWERED BY <a href="https://thinkaiq.com" target="_blank" className="text-zinc-900 underline decoration-indigo-600 decoration-2">THINKAIQ</a> 
-                             <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full"></span> 
-                             INDIA&apos;S PREMIER SAFETY MATRIX
+                        <p className="flex items-center gap-2 flex-wrap justify-center lg:justify-end">
+                             POWERED BY <a href="https://thinkaiq.com" target="_blank" className="text-zinc-900 font-black underline decoration-indigo-600 decoration-2">THINKAIQ X PIXEL FLAMES</a> 
+                             <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full hidden sm:block"></span> 
+                             <span className="hidden sm:inline">INDIA&apos;S PREMIER SAFETY MATRIX</span>
                         </p>
                     </div>
                 </div>

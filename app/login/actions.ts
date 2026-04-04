@@ -17,27 +17,24 @@ export async function fetchAndLinkUserData(userId: string, email: string) {
         if (!supabaseServiceKey) throw new Error("Missing server configuration");
 
         const normalizedEmail = email?.toLowerCase().trim();
-        let qrData = null;
 
-        // 1. Search ONLY by email since linked_user_id column is missing in DB
-        console.log("Searching for tag matching email:", normalizedEmail);
+        // 1. Search ALL tags matching email
+        console.log("Searching for tags matching email:", normalizedEmail);
         
-        // Search qr_details for the emergency_email inside additional_data JSONB
-        const { data: details, error: detailsError } = await supabaseAdmin
+        const { data: detailsList, error: detailsError } = await supabaseAdmin
             .from('qr_details')
             .select('qr_id')
-            .filter('additional_data->>emergency_email', 'ilike', normalizedEmail)
-            .limit(1)
-            .maybeSingle();
+            .filter('additional_data->>emergency_email', 'ilike', normalizedEmail);
 
         if (detailsError) {
             console.error("Email search database error:", detailsError);
         }
 
-        if (details?.qr_id) {
-            console.log("Found matching tag ID:", details.qr_id);
+        if (detailsList && detailsList.length > 0) {
+            const qrIds = detailsList.map(d => d.qr_id);
+            console.log("Found matching tag IDs:", qrIds);
             
-            // Fetch the full QR data
+            // Fetch all FULL QR data
             const { data: linkedData, error: fetchError } = await supabaseAdmin
                 .from('qr_codes')
                 .select(`
@@ -46,17 +43,16 @@ export async function fetchAndLinkUserData(userId: string, email: string) {
                     emergency_contacts(*),
                     emergency_alerts(*)
                 `)
-                .eq('id', details.qr_id)
-                .maybeSingle();
+                .in('id', qrIds);
 
             if (fetchError) {
                 console.error("Fetch full data error:", fetchError);
             }
 
-            qrData = linkedData;
+            return { success: true, data: linkedData || [] };
         }
 
-        return { success: true, data: qrData || null };
+        return { success: true, data: [] };
     } catch (e: any) {
         console.error("Action level error:", e);
         return { success: false, error: e.message };

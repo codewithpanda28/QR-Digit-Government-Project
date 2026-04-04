@@ -2177,7 +2177,7 @@ _Sent via Q-Raksha Secure Dispatch_`
                             { label: 'Take Video', sub: 'Evidence Camera', icon: Video, action: () => openCamera('video'), color: 'text-blue-500', bg: 'bg-white' },
                             { label: 'Take Photo', sub: 'Snap Evidence', icon: Camera, action: () => openCamera('photo'), color: 'text-purple-500', bg: 'bg-white' },
                             { label: isRecordingAudio ? 'Recording...' : 'Audio Rec', sub: 'Surrounding', icon: Volume2, action: () => isRecordingAudio ? stopAudioEvidence() : (qrCode && startAudioEvidence(qrCode.id)), color: isRecordingAudio ? 'text-red-500' : 'text-blue-400', bg: 'bg-white' },
-                            { label: sirenActive ? 'Stop' : 'Fake Siren', sub: 'Alert Nearby', icon: Siren, action: toggleSiren, color: 'text-red-500', bg: 'bg-white' },
+                            { label: 'Notify Family', sub: 'AI Voice Call', icon: Phone, action: () => { triggerToolAutoAlert('Manual AI Call Initiated', true, false); toast.success('Calling Family...'); }, color: 'text-green-600', bg: 'bg-white' },
                         ].map((tool, i) => (
                             <button key={i} onClick={(e) => { e.preventDefault(); tool.action(); }}
                                 className={`bg-white border border-slate-100 rounded-3xl p-3.5 flex items-center gap-3 transition-all active:scale-95 cursor-pointer hover:border-slate-300 ${tool.label === 'Recording...' ? 'ring-2 ring-red-100 border-red-200' : ''}`}>

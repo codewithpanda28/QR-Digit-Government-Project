@@ -28,6 +28,9 @@ export async function POST(req: Request) {
 
         const virtualNumberInt = parseInt(fromNumber.replace(/\D/g, ''))
 
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') || `https://${req.headers.get('host')}`
+        const audioUrl = `${appUrl}/Call/EmergencyCall.mp3`
+
         // Call each contact and play an emergency message/siren
         const scanResults = await Promise.all(contacts.map(async (phone) => {
             const formatted = formatNumber(phone)
@@ -41,11 +44,7 @@ export async function POST(req: Request) {
                 pcmo: [
                     {
                         action: "play",
-                        file_url: "https://www.soundjay.com/mechanical/siren-1.mp3"
-                    },
-                    {
-                        action: "speak",
-                        text: `Emergency. Emergency. Emergency. This is an urgent alert. Emergency. Emergency. Check your WhatsApp and Email now. Emergency. Emergency. Emergency.`
+                        file_url: audioUrl
                     }
                 ]
             }
