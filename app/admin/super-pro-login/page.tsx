@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Shield, Lock, ArrowRight, Crown } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { completeLogin } from '../actions';
 
 export default function SuperProAdminLogin() {
     const router = useRouter();
@@ -12,7 +11,7 @@ export default function SuperProAdminLogin() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        // NUCLEAR RESET: Clear all potential stale sessions to prevent Layout redirect loops
+        // Clear all potential stale sessions to prevent Layout redirect loops
         if (typeof window !== 'undefined') {
             localStorage.removeItem('admin_session');
             localStorage.removeItem('super_pro_admin_session');
@@ -30,48 +29,36 @@ export default function SuperProAdminLogin() {
         try {
             setLoading(true);
 
-            // Robust Environment Variable Access
-            const envPasscode = process.env.NEXT_PUBLIC_SUPER_ADMIN_PINCODE;
-            const hardcodedPasscode = '180117';
-            const validPasscodes = [envPasscode, hardcodedPasscode].filter(Boolean);
+            // Call dedicated API route (works reliably on Hostinger production)
+            const response = await fetch('/api/super-pro-auth', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ passcode: passcode.trim() }),
+            });
 
-            console.log('Admin Login Attempt:', { entered: passcode, valid: validPasscodes }); // Debugging
+            const result = await response.json();
 
-            if (validPasscodes.includes(passcode.trim())) {
-                // Create secure server-side session
-                const loginResult = await completeLogin({
-                    id: 'super-pro-master',
+            if (!response.ok || !result.success) {
+                toast.error(result.error || 'Invalid passcode! Access denied.');
+                return;
+            }
+
+            // Keep localStorage session for simultaneous access
+            if (typeof window !== 'undefined') {
+                localStorage.setItem('super_pro_admin_session', JSON.stringify({
+                    role: 'super_pro_admin',
                     email: 'superproadmin@thinkaiq.com',
                     name: 'Super Pro Admin',
-                    role: 'super_pro_admin'
-                });
-
-                if (!loginResult.success) {
-                    toast.error('Security handshake failed. Please try again.');
-                    return;
-                }
-
-                // Keep existing sessions for simultaneous access
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem('super_pro_admin_session', JSON.stringify({
-                        role: 'super_pro_admin',
-                        email: 'superproadmin@thinkaiq.com',
-                        name: 'Super Pro Admin',
-                        loginTime: new Date().toISOString()
-                    }));
-                }
-
-                toast.success('Welcome Super Pro Admin! 👑');
-                // Redirect directly to Super Pro Panel
-                router.push('/admin/super-pro');
-            } else {
-                console.error('Login Failed: Invalid Passcode');
-                toast.error('Invalid passcode! Access denied.');
+                    loginTime: new Date().toISOString()
+                }));
             }
+
+            toast.success('Welcome Super Pro Admin! 👑');
+            router.push('/admin/super-pro');
 
         } catch (error: any) {
             console.error('Login error:', error);
-            toast.error('Login failed');
+            toast.error('Login failed. Please try again.');
         } finally {
             setLoading(false);
         }
