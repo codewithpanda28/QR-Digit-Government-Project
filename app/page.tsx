@@ -26,9 +26,7 @@ export default function HomePage() {
                 <div className="max-w-[1400px] mx-auto px-6 py-12">
 
                     {/* Top Banner */}
-                    <div className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-center py-3 rounded-lg mb-8">
-                        <p className="font-bold text-lg">🎉 Limited Time Offer: ₹399 se ₹299 — 25% OFF!</p>
-                    </div>
+
 
                     <div className="grid lg:grid-cols-2 gap-12 items-center">
 
@@ -80,46 +78,32 @@ export default function HomePage() {
                             </div>
 
                             {/* Social Proof */}
-                            <div className="flex items-center gap-6 mt-8 pt-8 border-t">
-                                <div className="flex -space-x-2">
-                                    {[1, 2, 3, 4, 5].map(i => (
-                                        <div key={i} className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-purple-400 border-2 border-white"></div>
-                                    ))}
-                                </div>
-                                <div>
-                                    <div className="flex items-center gap-1 mb-1">
-                                        {[1, 2, 3, 4, 5].map(i => (
-                                            <Star key={i} className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                                        ))}
-                                    </div>
-                                    <p className="text-sm text-slate-800 font-semibold">50,000+ Happy Users</p>
-                                </div>
-                            </div>
+
                         </div>
 
                         {/* Right - Product Image with Floating Cards */}
                         <div className="relative">
                             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                                    <Image
-                                        src="/products/hero.jpeg"
-                                        alt="Q-Raksha Safety Tag"
-                                        width={600}
-                                        height={600}
-                                        className="w-full h-auto"
-                                        priority
-                                    />
-                                </div>
- 
-                                {/* Floating Feature Cards */}
-                                <div className="absolute -left-4 top-1/4 bg-white p-4 rounded-xl shadow-xl border-2 border-green-200 max-w-[200px]">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                            <CheckCircle className="w-5 h-5 text-green-600" />
-                                        </div>
-                                        <span className="font-bold text-sm text-black">Tag Scanned</span>
+                                <Image
+                                    src="/products/hero.jpeg"
+                                    alt="Q-Raksha Safety Tag"
+                                    width={600}
+                                    height={600}
+                                    className="w-full h-auto"
+                                    priority
+                                />
+                            </div>
+
+                            {/* Floating Feature Cards */}
+                            <div className="absolute -left-4 top-1/4 bg-white p-4 rounded-xl shadow-xl border-2 border-green-200 max-w-[200px]">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                        <CheckCircle className="w-5 h-5 text-green-600" />
                                     </div>
-                                    <p className="text-xs text-slate-800">AI call jaati hai owner ko ✅</p>
+                                    <span className="font-bold text-sm text-black">Tag Scanned</span>
                                 </div>
+                                <p className="text-xs text-slate-800">AI call jaati hai owner ko ✅</p>
+                            </div>
 
                             <div className="absolute -right-4 top-1/2 bg-white p-4 rounded-xl shadow-xl border-2 border-blue-200 max-w-[200px]">
                                 <div className="flex items-center gap-2 mb-2">
