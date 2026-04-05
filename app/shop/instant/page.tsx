@@ -71,8 +71,28 @@ function InstantContent() {
 
     function loadRazorpayScript(): Promise<void> {
         return new Promise((resolve, reject) => {
-            if ((window as any).Razorpay) { resolve(); return }
-            if (document.querySelector('script[src*="razorpay"]')) { resolve(); return }
+            if (typeof window !== 'undefined' && (window as any).Razorpay) { 
+                resolve(); 
+                return; 
+            }
+            
+            const existingScript = document.querySelector('script[src*="razorpay"]');
+            if (existingScript) { 
+                // Script tag exists but window.Razorpay might not be ready yet.
+                const checkInterval = setInterval(() => {
+                    if ((window as any).Razorpay) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 100);
+                // Timeout after 10 seconds
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                    reject(new Error('Razorpay load timeout'));
+                }, 10000);
+                return; 
+            }
+
             const script = document.createElement('script')
             script.src = 'https://checkout.razorpay.com/v1/checkout.js'
             script.onload = () => resolve()

@@ -45,7 +45,13 @@ function RenewalContent() {
 
         setLoading(true)
         try {
-            const res = await fetch('/api/cashfree/create-order', {
+            if (isTesting) {
+                 // Fallback dev testing
+                 window.location.href = `/renewal/success?qr_id=${qr_id}&days=${activeDays}`
+                 return
+            }
+
+            const res = await fetch('/api/razorpay/create-renewal-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -53,37 +59,95 @@ function RenewalContent() {
                     days: activeDays,
                     customer_name: form.name,
                     customer_email: form.email,
-                    customer_phone: `+91${form.phone}`,
-                    custom_amount: activePrice // Optional: Send calculated price if backend supports it
+                    customer_phone: form.phone,
+                    custom_amount: activePrice
                 })
             })
 
             const data = await res.json()
             if (!res.ok) throw new Error(data.error)
 
-            if (isTesting) {
-                window.location.href = `/api/cashfree/verify?order_id=${data.order_id}&qr_id=${qr_id}&days=${activeDays}&debug_test=true`
-                return
-            }
+            await loadRazorpayScript()
 
-            if (!(window as any).Cashfree) await loadCashfreeScript()
-            const env = (process.env.NEXT_PUBLIC_CASHFREE_ENV || 'sandbox').trim().toLowerCase()
-            const cf = (window as any).Cashfree({ mode: env === 'production' ? 'production' : 'sandbox' })
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, 
+                amount: data.amount * 100,
+                currency: data.currency,
+                name: "QRdigit Renewal",
+                description: `Extend QR safety coverage by ${activeDays} days`,
+                order_id: data.order_id, 
+                handler: async function (response: any) {
+                    try {
+                        const verifyRes = await fetch('/api/razorpay/verify-renewal', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature,
+                                qr_id,
+                                days: activeDays
+                            })
+                        });
+                        const verifyData = await verifyRes.json();
+                        
+                        if (verifyRes.ok) {
+                            window.location.href = `/renewal/success?qr_id=${qr_id}&days=${verifyData.days}&expiry=${verifyData.expiry}`
+                        } else {
+                            toast.error(verifyData.error || 'Payment verification failed');
+                        }
+                    } catch (e) {
+                         toast.error('Payment verification failed');
+                    }
+                },
+                prefill: {
+                    name: data.customer_name,
+                    email: data.customer_email,
+                    contact: data.customer_phone
+                },
+                theme: {
+                    color: "#0F172A" // slate-900 color for renewal page aesthetic
+                }
+            };
 
-            cf.checkout({ paymentSessionId: data.payment_session_id, redirectTarget: '_self' })
+            const rzp = new (window as any).Razorpay(options);
+            rzp.on('payment.failed', function (response: any){
+                 toast.error('Payment Failed: ' + response.error.description);
+            });
+            rzp.open();
         } catch (err: any) {
-            toast.error(err.message)
+            toast.error(err.message || 'Payment failed')
+        } finally {
             setLoading(false)
         }
     }
 
-    function loadCashfreeScript(): Promise<void> {
+    function loadRazorpayScript(): Promise<void> {
         return new Promise((resolve, reject) => {
-            if (document.querySelector('script[src*="cashfree"]')) { resolve(); return }
+            if (typeof window !== 'undefined' && (window as any).Razorpay) { 
+                resolve(); 
+                return; 
+            }
+            
+            const existingScript = document.querySelector('script[src*="razorpay"]');
+            if (existingScript) { 
+                const checkInterval = setInterval(() => {
+                    if ((window as any).Razorpay) {
+                        clearInterval(checkInterval);
+                        resolve();
+                    }
+                }, 100);
+                setTimeout(() => {
+                    clearInterval(checkInterval);
+                    reject(new Error('Razorpay load timeout'));
+                }, 10000);
+                return; 
+            }
+
             const script = document.createElement('script')
-            script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js'
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js'
             script.onload = () => resolve()
-            script.onerror = () => reject(new Error('Failed to load SDK'))
+            script.onerror = () => reject(new Error('Razorpay load failed'))
             document.head.appendChild(script)
         })
     }
