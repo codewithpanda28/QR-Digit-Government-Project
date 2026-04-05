@@ -43,10 +43,18 @@ export async function POST(req: Request) {
             const pcmoActions: any[] = [
                 {
                     action: "play",
-                    file_url: audioUrl,
-                    volume: 1.0 // Set volume to maximum (Range: 0.1 to 1.0)
+                    file_url: audioUrl
                 }
             ];
+
+            // If it's a real call and we have a scanner number, bridge them after the alert
+            if (isRealCall && scannerFormatted) {
+                pcmoActions.push({
+                    action: "dial",
+                    to: Number(scannerFormatted),
+                    caller_id: Number(virtualNumberInt)
+                });
+            }
 
             const apiBody = {
                 appid: parseInt(appId),

@@ -17,22 +17,44 @@ export async function POST(request: Request) {
 
         // --- UPDATE MODE ---
         if (alert_id) {
-            console.log(`[ALERT UPDATE] Patching location for Alert: ${alert_id}`);
-            const { data: updated, error: updateErr } = await supabase
-                .from('emergency_alerts')
-                .update({
-                    latitude: lat,
-                    longitude: lng,
-                    location_address: address,
-                    evidence_photos: body.evidence_photos || [],
-                    evidence_video: body.evidence_video || null
-                })
-                .eq('id', alert_id)
-                .select()
-                .single();
+            try {
+                const { data: updated, error: updateErr } = await supabase
+                    .from('emergency_alerts')
+                    .update({
+                        latitude: lat,
+                        longitude: lng,
+                        location_address: address,
+                        evidence_photos: body.evidence_photos || [],
+                        evidence_video: body.evidence_video || null
+                    })
+                    .eq('id', alert_id)
+                    .select()
+                    .single();
 
-            if (updateErr) throw updateErr;
-            return NextResponse.json({ success: true, alert: updated });
+                if (updateErr) {
+                    // 🚨 FALLBACK: If columns are missing, try a basic update
+                    if (updateErr.code === 'PGRST204' || updateErr.message.includes('evidence_photos')) {
+                        console.warn('[FALLBACK] DB Schema missing evidence columns. Retrying basic update.');
+                        const { data: basicUpdate, error: basicErr } = await supabase
+                            .from('emergency_alerts')
+                            .update({
+                                latitude: lat,
+                                longitude: lng,
+                                location_address: address
+                            })
+                            .eq('id', alert_id)
+                            .select()
+                            .single();
+                        if (basicErr) throw basicErr;
+                        return NextResponse.json({ success: true, alert: basicUpdate, warning: 'Schema Outdated' });
+                    }
+                    throw updateErr;
+                }
+                return NextResponse.json({ success: true, alert: updated });
+            } catch (err: any) {
+                console.error("[ERROR] Alert Update Failed:", err);
+                return NextResponse.json({ error: err.message }, { status: 500 });
+            }
         }
 
         // --- CREATE MODE ---

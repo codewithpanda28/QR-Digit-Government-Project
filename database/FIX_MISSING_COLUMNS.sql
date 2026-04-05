@@ -1,9 +1,8 @@
--- Add missing custom_price column and other potentially missing fields to users table
-ALTER TABLE users ADD COLUMN IF NOT EXISTS custom_price INTEGER;
-ALTER TABLE users ADD COLUMN IF NOT EXISTS subscription_duration TEXT;
+-- Add missing columns to emergency_alerts table
+ALTER TABLE public.emergency_alerts 
+ADD COLUMN IF NOT EXISTS evidence_photos TEXT[] DEFAULT '{}',
+ADD COLUMN IF NOT EXISTS evidence_video TEXT;
 
--- Success message
-DO $$
-BEGIN
-    RAISE NOTICE '✅ Missing users table columns (custom_price, subscription_duration) added.';
-END $$;
+-- Update the schema cache (handled by Supabase, but good to have the SQL recorded)
+COMMENT ON COLUMN public.emergency_alerts.evidence_photos IS 'Array of public URLs for evidence photos captured during SOS';
+COMMENT ON COLUMN public.emergency_alerts.evidence_video IS 'Public URL for evidence video captured during SOS';
