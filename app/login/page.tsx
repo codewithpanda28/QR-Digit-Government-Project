@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, Suspense } from "react";
 import { QrCode, ArrowRight, CheckCircle2, Shield, Activity, Phone, Car, MapPin, X, Loader2, AlertCircle, Camera, Siren, Volume2, ShieldAlert, RefreshCcw, ChevronRight, Calendar, Video } from "lucide-react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
@@ -7,7 +7,31 @@ import toast from "react-hot-toast";
 import { fetchAndLinkUserData, toggleQRStatus } from "./actions";
 
 export default function LoginPage() {
-    const [step, setStep] = useState<"EMAIL" | "OTP" | "DASHBOARD">("EMAIL");
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
+
+    if (!mounted) {
+        return (
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+                <Loader2 className="animate-spin text-slate-400 w-10 h-10" />
+            </div>
+        );
+    }
+
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+                <Loader2 className="animate-spin text-slate-400 w-10 h-10" />
+            </div>
+        }>
+            <LoginContent />
+        </Suspense>
+    );
+}
+
+function LoginContent() {
+    const [step, setStep] = useState<"INITIALIZING" | "EMAIL" | "OTP" | "DASHBOARD">("INITIALIZING");
+    const [mounted, setMounted] = useState(false);
     const [email, setEmail] = useState("");
     const [otp, setOtp] = useState(["", "", "", "", "", ""]); // Restored to 6, as Supabase Auth default is 6. 4 is unsupported.
     const [isLoading, setIsLoading] = useState(false);
@@ -19,11 +43,18 @@ export default function LoginPage() {
 
     // Check if user is already logged in securely
     useEffect(() => {
+        setMounted(true);
         const checkSession = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user) {
-                if (session.user.email) setEmail(session.user.email);
-                await loadUserData(session.user.id, session.user.email || "");
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (session?.user) {
+                    if (session.user.email) setEmail(session.user.email);
+                    await loadUserData(session.user.id, session.user.email || "");
+                } else {
+                    setStep("EMAIL");
+                }
+            } catch (e) {
+                setStep("EMAIL");
             }
         };
         checkSession();
@@ -35,21 +66,34 @@ export default function LoginPage() {
         setIsLoading(true);
 
         try {
-            const { error } = await supabase.auth.signInWithOtp({
-                email,
-                options: {
-                    shouldCreateUser: true // Allow new users to sign up via OTP
-                }
+            // 1. Check for Developer Bypass first (No email sent)
+            if (email.toLowerCase().includes('dev') || email.toLowerCase().includes('test') || email === 'akashkumar18017@gmail.com') {
+                toast.success("Developer Mode: Use 000000 to login");
+                setStep("OTP");
+                setIsLoading(false);
+                return;
+            }
+
+            // 2. Call Custom OTP API (Gmail/Nodemailer) - This bypasses Supabase rate limits
+            const res = await fetch('/api/auth/custom-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email.toLowerCase() })
             });
+            const result = await res.json();
 
-            if (error) throw error;
-
-            toast.success("Verification code sent to your email!");
-            setStep("OTP");
+            if (result.success) {
+                toast.success("Security code sent via Gmail!");
+                setStep("OTP");
+            } else {
+                console.error("Custom OTP failed:", result.error || "Uknown error");
+                // 🛑 NO FALLBACK: FALLBACK CAUSES RATE LIMITS.
+                // If it fails, it's likely a config error on server (Vercel environment variables)
+                toast.error(`OTP Service Unavailable: ${result.error || 'Server Config Missing'}`);
+            }
         } catch (error: any) {
             console.error(error);
-            // If they don't exist, we can tell them or still show OTP box to prevent email enumeration attacks
-            toast.error(error.message || "Failed to send code. Make sure you are registered.");
+            toast.error(error.message || "Failed to send code.");
         } finally {
             setIsLoading(false);
         }
@@ -62,21 +106,34 @@ export default function LoginPage() {
         setIsLoading(true);
 
         try {
-            const { data, error } = await supabase.auth.verifyOtp({
-                email,
-                token: code,
-                type: 'email'
+            // 1. Check Developer Bypass
+            if ((email.toLowerCase().includes('dev') || email.toLowerCase().includes('test') || email === 'akashkumar18017@gmail.com') && code === "000000") {
+                toast.success("Developer Access Granted");
+                await loadUserData("dev_user", email);
+                return;
+            }
+
+            // 2. Call Custom Verification System (Bypasses Supabase Auth public tokens)
+            const res = await fetch('/api/auth/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email.toLowerCase(), code })
             });
 
-            if (error) throw error;
+            const result = await res.json();
 
-            if (data?.user) {
+            if (res.ok && result.success && result.login_link) {
                 toast.success("Successfully verified!");
-                await loadUserData(data.user.id, email);
+                // 🚀 Bypassing Public Verify: Redirecting to the ACTION_LINK (Magic Link)
+                // This will automatically set the session cookie in the browser
+                // We use replace to prevent back-button loops
+                window.location.replace(result.login_link);
+            } else {
+                throw new Error(result.error || "Verification failed");
             }
         } catch (error: any) {
             console.error(error);
-            toast.error(error.message || "Invalid or expired code.");
+            toast.error(error.message || "Invalid code. Please try again.");
         } finally {
             setIsLoading(false);
         }
@@ -109,7 +166,9 @@ export default function LoginPage() {
             }
             setStep("DASHBOARD");
         } catch (error: any) {
-            toast.error("Could not load your vehicle data.");
+            console.error("Load error:", error);
+            toast.error("Security Session Timed Out. Please Login again.");
+            setStep("EMAIL");
         } finally {
             setIsLoading(false);
         }
@@ -174,15 +233,22 @@ export default function LoginPage() {
                     'postgres_changes',
                     { event: 'UPDATE', schema: 'public', table: 'emergency_alerts', filter: `qr_id=eq.${activeItem.id}` },
                     (payload) => {
+                        console.log('📡 RADAR STATUS UPDATE:', payload.new);
                         setUserData((current: any) => {
                             if (!current || current === 'NO_DATA') return current;
                             const curArr = Array.isArray(current) ? current : [current];
-                            const updatedArr = curArr.map((item: any, idx: number) => {
-                                if (idx !== activeAssetIndex) return item;
+                            const updatedArr = curArr.map((item: any) => {
+                                if (item.id !== activeItem.id) return item;
                                 const updatedAlerts = item.emergency_alerts?.map((a: any) => a.id === payload.new.id ? payload.new : a);
                                 return { ...item, emergency_alerts: updatedAlerts };
                             });
                             return updatedArr;
+                        });
+
+                        // 🚀 SYNC ACTIVE MODAL: If this alert is being viewed, update the view state too
+                        setViewAlert((current: any) => {
+                            if (current?.id === payload.new.id) return payload.new;
+                            return current;
                         });
                     }
                 )
@@ -201,11 +267,18 @@ export default function LoginPage() {
                     setUserData((current: any) => {
                         if (!current || current === 'NO_DATA') return current;
                         const curArr = Array.isArray(current) ? current : [current];
-                        const updatedArr = curArr.map((item: any, idx: number) => {
-                            if (idx !== activeAssetIndex) return item;
+                        const updatedArr = curArr.map((item: any) => {
+                            if (item.id !== activeItem.id) return item;
                             return { ...item, emergency_alerts: freshAlerts };
                         });
                         return updatedArr;
+                    });
+
+                    // 🚀 SYNC ACTIVE MODAL (Polling)
+                    setViewAlert((current: any) => {
+                        if (!current) return null;
+                        const matching = freshAlerts.find((a: any) => a.id === current.id);
+                        return matching || current;
                     });
                 }
             }, 15000);
@@ -305,7 +378,7 @@ export default function LoginPage() {
                     <div className="max-w-[1400px] mx-auto px-4 h-16 flex items-center justify-between">
                         <Link href="/" className="flex items-center">
                             <img
-                                src="/Logo.png"
+                                src="/Logo.jpeg"
                                 alt="Raksha Logo"
                                 className="h-10 md:h-14 w-auto object-contain hover:scale-105 transition-transform"
                             />
@@ -347,23 +420,38 @@ export default function LoginPage() {
                         <div className="flex flex-col md:flex-row gap-8">
                             {/* Profile Info */}
                             <div className="w-full md:w-[350px] space-y-6">
-                                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative overflow-hidden">
-                                    <div className="absolute top-0 left-0 w-full h-24 bg-gradient-to-r from-red-600 to-pink-600"></div>
-                                    <div className="relative pt-12 flex flex-col items-center">
-                                        <div className="w-24 h-24 bg-white rounded-full border-4 border-white shadow-md flex items-center justify-center mb-4 overflow-hidden">
-                                            {(details?.profile_image_url || details?.additional_data?.photo_url) ? (
-                                                <img src={details.profile_image_url || details.additional_data.photo_url} alt="Profile" className="w-full h-full object-cover" />
-                                            ) : (
-                                                <div className="w-full h-full bg-gray-100 flex items-center justify-center text-gray-400">
-                                                    <span className="text-2xl font-bold uppercase">{email.substring(0, 2)}</span>
-                                                </div>
-                                            )}
+                                <div className="bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-slate-50 relative overflow-hidden group">
+                                    {/* Sleek Top Tricolor Bar */}
+                                    <div className="h-2.5 flex flex-row shadow-sm">
+                                        <div className="flex-1" style={{ backgroundColor: '#FF9933' }}></div>
+                                        <div className="flex-1 bg-white"></div>
+                                        <div className="flex-1" style={{ backgroundColor: '#138808' }}></div>
+                                    </div>
+
+                                    <div className="p-10 flex flex-col items-center">
+                                        {/* Profile Photo with National Glow */}
+                                        <div className="relative mb-8">
+                                            <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-[#FF9933] via-white to-[#138808] opacity-30 group-hover:opacity-60 blur-sm transition-opacity duration-500"></div>
+                                            <div className="relative w-28 h-28 bg-white rounded-full border-4 border-white shadow-xl overflow-hidden transform group-hover:scale-105 transition-all duration-500">
+                                                {(details?.profile_image_url || details?.additional_data?.photo_url) ? (
+                                                    <img src={details.profile_image_url || details.additional_data.photo_url} alt="Profile" className="w-full h-full object-cover" />
+                                                ) : (
+                                                    <div className="w-full h-full bg-slate-50 flex items-center justify-center text-slate-300">
+                                                        <span className="text-3xl font-black uppercase tracking-tighter">{email.substring(0, 2)}</span>
+                                                    </div>
+                                                )}
+                                            </div>
                                         </div>
-                                        <h2 className="text-xl font-bold text-gray-900 mb-1">{details?.full_name || details?.owner_name || email}</h2>
-                                        <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-bold mt-2">
-                                            <CheckCircle2 className="w-3.5 h-3.5" />
-                                            Verified Owner
-                                        </span>
+                                        
+                                        <div className="text-center">
+                                            <h2 className="text-2xl font-black text-slate-800 mb-1 tracking-tighter uppercase drop-shadow-sm">{details?.full_name || details?.owner_name || email}</h2>
+                                            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-6">Registered Safety Executive</p>
+                                            
+                                            <div className="inline-flex items-center gap-2 px-5 py-3 bg-slate-900 border border-slate-800 rounded-2xl text-white text-[10px] font-black uppercase tracking-[0.2em] shadow-xl hover:shadow-2xl transition-all">
+                                                <Shield className="w-4 h-4 text-[#FF9933]" />
+                                                Verified Official
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -374,9 +462,9 @@ export default function LoginPage() {
                                     </h3>
                                     <div className="border border-red-100 rounded-xl p-4 bg-red-50/50 space-y-3">
                                         <div className="flex justify-between items-start">
-                                            <span className="font-bold text-red-700 text-sm">QR: {userData?.qr_number}</span>
-                                            <span className={`text-[10px] font-bold px-2 py-1 rounded shadow-sm border uppercase ${userData?.status === 'activated' ? 'bg-white text-green-600 border-green-100' : 'bg-red-600 text-white border-red-700'}`}>
-                                                {userData?.status === 'activated' ? 'Active' : userData?.status === 'suspended' ? 'Suspended' : userData?.status || 'Active'}
+                                            <span className="font-bold text-red-700 text-sm">QR: {activeItem?.qr_number}</span>
+                                            <span className={`text-[10px] font-bold px-2 py-1 rounded shadow-sm border uppercase ${activeItem?.status === 'activated' ? 'bg-white text-green-600 border-green-100' : 'bg-red-600 text-white border-red-700'}`}>
+                                                {activeItem?.status === 'activated' ? 'Active' : activeItem?.status === 'suspended' ? 'Suspended' : activeItem?.status || 'Active'}
                                             </span>
                                         </div>
 
@@ -384,7 +472,7 @@ export default function LoginPage() {
                                             <div className="flex flex-col">
                                                 <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Expiry Date</span>
                                                 <span className="text-sm font-bold text-slate-700">
-                                                    {userData?.subscription_end ? new Date(userData.subscription_end).toLocaleDateString() : 'Lifetime'}
+                                                    {activeItem?.subscription_end ? new Date(activeItem.subscription_end).toLocaleDateString() : 'Lifetime'}
                                                 </span>
                                             </div>
                                             <Calendar className="w-5 h-5 text-slate-300" />
@@ -393,12 +481,12 @@ export default function LoginPage() {
                                         <button
                                             onClick={handleToggleDeactivate}
                                             disabled={isLoading}
-                                            className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${userData?.status === 'activated'
+                                            className={`w-full py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all ${activeItem?.status === 'activated'
                                                 ? 'bg-white text-red-600 border-2 border-red-100 hover:bg-red-50'
                                                 : 'bg-green-600 text-white hover:bg-green-700 shadow-lg'
                                                 }`}
                                         >
-                                            {userData?.status === 'activated' ? 'Deactivate Tag' : 'Activate Tag Now'}
+                                            {activeItem?.status === 'activated' ? 'Deactivate Tag' : 'Activate Tag Now'}
                                         </button>
                                     </div>
                                 </div>
@@ -654,8 +742,8 @@ export default function LoginPage() {
                                     <div className="relative z-10 bg-slate-50/30">
                                         {sortedAlerts.length > 0 ? (
                                             <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-slate-100">
-                                                {sortedAlerts.slice(alertPageIndex * 3, (alertPageIndex * 3) + 3).map((alert: any, idx: number) => (
-                                                    <AlertColumn key={alert.id || idx} alert={alert} qrId={userData.id} />
+                                                {sortedAlerts.slice(alertPageIndex * 3, (alertPageIndex * 3) + 3).map((alert: any) => (
+                                                    <AlertColumn key={alert.id} alert={alert} qrId={activeItem.id || activeItem.qr_number} />
                                                 ))}
                                                 {Array.from({ length: Math.max(0, 3 - sortedAlerts.slice(alertPageIndex * 3, (alertPageIndex * 3) + 3).length) }).map((_, i) => (
                                                     <div key={`filler-${i}`} className="hidden md:flex flex-col items-center justify-center p-12 opacity-[0.03] border-l border-slate-100 bg-slate-50">
@@ -704,7 +792,7 @@ export default function LoginPage() {
 
                                             {/* Body */}
                                             <div className="max-h-[80vh] overflow-y-auto custom-scrollbar">
-                                                <AlertColumn alert={viewAlert} qrId={userData.id} />
+                                                <AlertColumn alert={viewAlert} qrId={activeItem.id} />
 
                                                 {/* Actions */}
                                                 <div className="p-6 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-4">
@@ -713,7 +801,8 @@ export default function LoginPage() {
                                                             const toolMap: any = { 'SIREN': 'siren', 'PHOTO': 'camera', 'AUDIO': 'audio', 'CRASH': 'crash', 'SOS': 'sos' };
                                                             const type = viewAlert.alert_type?.toUpperCase();
                                                             const toolKey = Object.keys(toolMap).find(k => type?.includes(k)) || 'SOS';
-                                                            window.open(`/scan/${userData?.qr_number || details?.id}?auto=${toolMap[toolKey]}`, '_blank');
+                                                            const identifier = activeItem?.qr_number || activeItem?.id;
+                                                            window.open(`/scan/${identifier}?auto=${toolMap[toolKey]}`, '_blank');
                                                         }}
                                                         className="flex-1 bg-slate-900 text-white font-black py-4 rounded-2xl text-[10px] uppercase tracking-[0.2em] flex items-center justify-center gap-3 hover:bg-black active:scale-95 transition-all shadow-xl shadow-slate-200"
                                                     >
@@ -797,14 +886,16 @@ export default function LoginPage() {
         );
     }
 
+    if (!mounted) return null;
+
     return (
         <div className="min-h-screen bg-white flex flex-col sm:bg-slate-50 relative">
             {/* Header */}
             <header className="p-6 sm:px-12 w-full flex justify-between items-center absolute top-0 left-0 z-10">
                 <Link href="/" className="flex items-center">
                     <img
-                        src="/Logo.png"
-                        alt="Raksha Logo"
+                        src="/Logo.jpeg"
+                        alt="QRdigit Logo"
                         className="h-12 md:h-16 w-auto object-contain hover:scale-105 transition-transform"
                     />
                 </Link>
@@ -816,6 +907,19 @@ export default function LoginPage() {
             {/* Auth Box */}
             <div className="flex-1 flex flex-col justify-center items-center px-4 pt-20">
                 <div className="w-full max-w-[420px] bg-white sm:rounded-3xl sm:shadow-[0_8px_30px_rgb(0,0,0,0.08)] sm:border border-gray-100 p-8 sm:p-10">
+
+                    {(step === "INITIALIZING" || (isLoading && step === "EMAIL")) && (
+                        <div className="flex flex-col items-center justify-center py-20 animate-in fade-in duration-700">
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-red-100 rounded-full blur-2xl animate-pulse"></div>
+                                <Loader2 className="w-16 h-16 text-slate-900 animate-spin relative z-10" />
+                            </div>
+                            <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight mt-8">QRdigit Secure Grid</h2>
+                            <p className="text-gray-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-2 animate-pulse text-center max-w-xs">
+                                Initializing Secured Tactical Dashboard...
+                            </p>
+                        </div>
+                    )}
 
                     {step === "EMAIL" && (
                         <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -868,7 +972,13 @@ export default function LoginPage() {
                                 <button onClick={() => setStep("EMAIL")} className="text-red-600 mx-1 hover:underline font-bold">Edit</button>
                             </p>
 
-                            <form onSubmit={handleVerifyOTP} className="space-y-8">
+                            <form onSubmit={handleVerifyOTP} className="space-y-8 relative">
+                                {isLoading && (
+                                    <div className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center rounded-xl animate-in fade-in duration-300">
+                                        <Loader2 className="w-10 h-10 text-red-600 animate-spin mb-4" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-800">Verifying Tactical Link...</p>
+                                    </div>
+                                )}
                                 <div className="flex justify-between gap-2">
                                     {otp.map((digit, index) => (
                                         <input
@@ -921,19 +1031,15 @@ function AlertColumn({ alert, qrId }: { alert: any; qrId: string }) {
     const isSOS = alert.alert_type === 'sos' || (!isSiren && !isPhoto && !isVideo && !isAudio && !isHelpline && !isCrash);
 
     useEffect(() => {
+        let isMounted = true;
         let retryCount = 0;
-        const fetchEvidence = async () => {
-            try {
-                // 🚀 PRIORITY 1: Check if Database already has the links (New Sync System)
-                if (alert.evidence_photos && Array.isArray(alert.evidence_photos) && alert.evidence_photos.length > 0) {
-                    setImages(alert.evidence_photos);
-                    setLoading(false);
-                    // If we have DB photos, we might still want to check for audio/video from storage or DB
-                    if (alert.evidence_video) setVideoUrl(alert.evidence_video);
-                    // Continue to check storage for audio specifically if not in DB
-                }
+        let timeoutId: any = null;
 
-                // Determine images and audio for this specific alert from Storage
+        const fetchEvidence = async () => {
+            if (!isMounted) return;
+            setLoading(true);
+            try {
+                // 1. Storage Scan (Primary Path)
                 let finalPath = `emergencies/${qrId}/${alert.id}`;
                 let { data: files } = await supabase.storage.from("emergency-evidence").list(finalPath, { limit: 50, sortBy: { column: 'name', order: 'desc' } });
 
@@ -943,7 +1049,7 @@ function AlertColumn({ alert, qrId }: { alert: any; qrId: string }) {
                 };
                 const isVideoFile = (name: string) => {
                     const lower = name.toLowerCase();
-                    return (lower.endsWith('.webm') || lower.endsWith('.mp4')) && (lower.includes('video') || !lower.includes('audio'));
+                    return (lower.endsWith('.webm') || lower.endsWith('.mp4'));
                 };
                 const isAudioFile = (name: string) => {
                     const lower = name.toLowerCase();
@@ -952,60 +1058,66 @@ function AlertColumn({ alert, qrId }: { alert: any; qrId: string }) {
 
                 let validFiles = (files || []).filter(f => isImageFile(f.name) || isAudioFile(f.name) || isVideoFile(f.name));
                 const alertAgeMs = Date.now() - new Date(alert.created_at || Date.now()).getTime();
-                const isVeryRecent = alertAgeMs < 300000; // 5 minutes
+                const isVeryRecent = alertAgeMs < 480000; // 8 minutes
 
-                if (validFiles.length === 0 && isVeryRecent && retryCount < 8 && images.length === 0) {
+                // 🚀 SMART RETRY: If it's a recent alert, keep checking for up to 12 attempts 
+                if (validFiles.filter(f => isImageFile(f.name)).length < 6 && isVeryRecent && retryCount < 12) {
                     retryCount++;
-                    setTimeout(fetchEvidence, 4000);
-                    return;
+                    timeoutId = setTimeout(() => { if (isMounted) fetchEvidence(); }, 4000);
+                    if (validFiles.length === 0) return; 
                 }
 
-                // LEGACY FALLBACK: Only if no specific files found AND alert is old
-                if (validFiles.length === 0 && !isVeryRecent && images.length === 0) {
+                if (validFiles.length === 0) {
                     finalPath = `emergencies/${qrId}`;
-                    const { data: legacyFiles } = await supabase.storage.from("emergency-evidence").list(finalPath, { limit: 50, sortBy: { column: 'name', order: 'desc' } });
-
-                    validFiles = (legacyFiles || []).filter(f => {
-                        if (!isImageFile(f.name) && !isAudioFile(f.name)) return false;
-                        const alertTime = new Date(alert.created_at).getTime();
-                        const fileTime = f.created_at ? new Date(f.created_at).getTime() : 0;
-                        if (!fileTime) return true;
-                        return Math.abs(alertTime - fileTime) < 300000; // 5 minute window
-                    });
+                    const { data: rootFiles } = await supabase.storage.from("emergency-evidence").list(finalPath);
+                    if (rootFiles) {
+                        const filtered = rootFiles.filter(f => {
+                            if (!isImageFile(f.name) && !isAudioFile(f.name)) return false;
+                            const alertTime = new Date(alert.created_at).getTime();
+                            const fileTime = f.created_at ? new Date(f.created_at).getTime() : 0;
+                            return Math.abs(alertTime - fileTime) < 180000;
+                        });
+                        validFiles = [...filtered];
+                    }
                 }
 
                 if (validFiles && validFiles.length > 0) {
-                    // Fetch signed URLs instead of public since bucket is likely private
-                    const imageFiles = validFiles.filter(f => isImageFile(f.name));
-                    if (imageFiles.length > 0 && images.length === 0) {
-                        const signedImageUrls = await Promise.all(imageFiles.map(async (file) => {
-                            const { data } = await supabase.storage.from("emergency-evidence").createSignedUrl(`${finalPath}/${file.name}`, 3600);
-                            return data?.signedUrl || null;
-                        }));
-                        setImages(signedImageUrls.filter(Boolean) as string[]);
-                    }
+                    const signedLinks = await Promise.all(validFiles.map(async (file) => {
+                        const { data } = await supabase.storage.from("emergency-evidence").createSignedUrl(`${finalPath}/${file.name}`, 3600);
+                        return { url: data?.signedUrl || null, name: file.name };
+                    }));
 
-                    const audioFile = validFiles.find(f => isAudioFile(f.name));
-                    if (audioFile && !audioUrl) {
-                        const { data } = await supabase.storage.from("emergency-evidence").createSignedUrl(`${finalPath}/${audioFile.name}`, 3600);
-                        if (data) setAudioUrl(data.signedUrl);
-                    }
+                    const imageLinks = signedLinks.filter(u => isImageFile(u.name)).map(u => u.url).filter(Boolean) as string[];
+                    if (isMounted && imageLinks.length > 0) setImages(imageLinks);
 
-                    const videoFile = validFiles.find(f => isVideoFile(f.name));
-                    if (videoFile && !videoUrl) {
-                        const { data } = await supabase.storage.from("emergency-evidence").createSignedUrl(`${finalPath}/${videoFile.name}`, 3600);
-                        if (data) setVideoUrl(data.signedUrl);
+                    const audioLink = signedLinks.find(u => isAudioFile(u.name))?.url;
+                    if (isMounted && audioLink) setAudioUrl(audioLink);
+
+                    const videoLink = signedLinks.find(u => isVideoFile(u.name))?.url;
+                    if (isMounted && videoLink) setVideoUrl(videoLink);
+                } else {
+                    // FINAL FALLBACK: If listing fails or is empty, use database links
+                    if (isMounted && alert.evidence_photos?.length > 0) {
+                        setImages(alert.evidence_photos);
+                    }
+                    if (isMounted && alert.evidence_video) {
+                        setVideoUrl(alert.evidence_video);
                     }
                 }
             } catch (e) {
                 console.error("Evidence load failed", e);
             } finally {
-                setLoading(false);
+                if (isMounted) {
+                    // Only stop loading if we actually found something or hit the retry limit
+                    // This prevents flickering between "Syncing" and "Offline" states
+                    setLoading(false);
+                }
             }
         };
-        if (alert.id) fetchEvidence();
-        else setLoading(false);
-    }, [alert.id, qrId]);
+
+        fetchEvidence();
+        return () => { isMounted = false; if (timeoutId) clearTimeout(timeoutId); };
+    }, [alert.id, qrId, alert.evidence_photos, alert.evidence_video]);
 
     return (
         <div className="p-6 flex flex-col h-full bg-white/40 hover:bg-white/80 transition-all duration-300 group shadow-[inset_0_0_20px_rgba(0,0,0,0.02)]">
@@ -1065,7 +1177,7 @@ function AlertColumn({ alert, qrId }: { alert: any; qrId: string }) {
             <div className="bg-gradient-to-br from-slate-50 to-white p-3 rounded-xl border border-slate-100 shadow-inner mb-5 min-h-[50px] group-hover:border-slate-200 transition-colors">
                 <p className="text-[11px] font-bold text-slate-700 line-clamp-2 leading-relaxed uppercase tracking-tight">
                     <span className="text-slate-400 mr-1">📍</span>
-                    {alert.location_address || 'Geodata Syncing...'}
+                    {(!alert.location_address || alert.location_address.includes('DETERMINING')) ? 'Syncing Precise Location...' : alert.location_address}
                 </p>
             </div>
 
@@ -1085,7 +1197,7 @@ function AlertColumn({ alert, qrId }: { alert: any; qrId: string }) {
                     )}
                 </div>
 
-                {loading ? (
+                {loading && images.length === 0 ? (
                     <div className="grid grid-cols-3 gap-2.5">
                         {[1, 2, 3, 4, 5, 6].map(i => <div key={i} className="aspect-square bg-slate-100 animate-pulse rounded-lg border border-slate-200"></div>)}
                     </div>
@@ -1094,7 +1206,10 @@ function AlertColumn({ alert, qrId }: { alert: any; qrId: string }) {
                         {images.slice(0, 12).map((url, i) => (
                             <div key={i} className="relative aspect-square group/img rounded-xl overflow-hidden border-2 border-slate-100 bg-slate-900 cursor-pointer shadow-sm hover:border-red-500 transition-all duration-300 transform hover:scale-105" onClick={() => window.open(url, '_blank')}>
                                 <div className="absolute inset-0 bg-red-600/10 opacity-0 group-hover/img:opacity-100 transition-opacity z-10 pointer-events-none"></div>
-                                <img src={url} alt="Evidence" className="w-full h-full object-cover grayscale brightness-75 group-hover/img:grayscale-0 group-hover/img:brightness-100 transition-all duration-700" />
+                                <img src={url} alt="Evidence" className="w-full h-full object-cover grayscale brightness-75 group-hover/img:grayscale-0 group-hover/img:brightness-100 transition-all duration-700" onError={(e) => {
+                                    // Fallback for broken URLs (likely public URLs to private bucket)
+                                    (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150?text=Syncing...';
+                                }} />
                                 <div className="absolute bottom-1 right-1 bg-black/50 text-[6px] text-white px-1 rounded uppercase font-bold backdrop-blur-sm">C-{i + 1}</div>
                             </div>
                         ))}

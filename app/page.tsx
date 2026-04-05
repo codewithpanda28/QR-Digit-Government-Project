@@ -100,26 +100,26 @@ export default function HomePage() {
                         {/* Right - Product Image with Floating Cards */}
                         <div className="relative">
                             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
-                                <Image
-                                    src="/products/hero.jpeg"
-                                    alt="QRdigit Safety Tag"
-                                    width={600}
-                                    height={600}
-                                    className="w-full h-auto"
-                                    priority
-                                />
-                            </div>
-
-                            {/* Floating Feature Cards */}
-                            <div className="absolute -left-4 top-1/4 bg-white p-4 rounded-xl shadow-xl border-2 border-green-200 max-w-[200px]">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                        <CheckCircle className="w-5 h-5 text-green-600" />
-                                    </div>
-                                    <span className="font-bold text-sm text-black">QR Scanned</span>
+                                    <Image
+                                        src="/products/hero.jpeg"
+                                        alt="Q-Raksha Safety Tag"
+                                        width={600}
+                                        height={600}
+                                        className="w-full h-auto"
+                                        priority
+                                    />
                                 </div>
-                                <p className="text-xs text-slate-800">AI call jaati hai owner ko ✅</p>
-                            </div>
+ 
+                                {/* Floating Feature Cards */}
+                                <div className="absolute -left-4 top-1/4 bg-white p-4 rounded-xl shadow-xl border-2 border-green-200 max-w-[200px]">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                            <CheckCircle className="w-5 h-5 text-green-600" />
+                                        </div>
+                                        <span className="font-bold text-sm text-black">Tag Scanned</span>
+                                    </div>
+                                    <p className="text-xs text-slate-800">AI call jaati hai owner ko ✅</p>
+                                </div>
 
                             <div className="absolute -right-4 top-1/2 bg-white p-4 rounded-xl shadow-xl border-2 border-blue-200 max-w-[200px]">
                                 <div className="flex items-center gap-2 mb-2">
@@ -205,7 +205,7 @@ export default function HomePage() {
                     <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl p-8 md:p-12 border-2 border-green-200">
                         <div className="grid md:grid-cols-2 gap-8 items-center">
                             <div>
-                                <h3 className="text-3xl font-black mb-6 text-gray-900">QRdigit Se Ye Hota Hai:</h3>
+                                <h3 className="text-3xl font-black mb-6 text-gray-900">Q-Raksha Se Ye Hota Hai:</h3>
                                 <div className="space-y-4">
                                     {[
                                         "Koi bhi QR scan kare → Aapko turant AI call",
@@ -578,16 +578,16 @@ export default function HomePage() {
                             </thead>
                             <tbody className="divide-y divide-gray-200">
                                 {[
-                                    { feature: "App Download", others: "Required ❌", qrdigit: "Not Required ✅" },
-                                    { feature: "Privacy", others: "Number Visible ❌", qrdigit: "100% Hidden ✅" },
-                                    { feature: "Alert Type", others: "SMS Only ❌", qrdigit: "AI Voice Call ✅" },
-                                    { feature: "GPS Tracking", others: "Manual ❌", qrdigit: "Automatic ✅" },
-                                    { feature: "Cost", others: "Monthly Fee ❌", qrdigit: "One-time ✅" },
+                                    { feature: "App Download", others: "Required ❌", qraksha: "Not Required ✅" },
+                                    { feature: "Privacy", others: "Number Visible ❌", qraksha: "100% Hidden ✅" },
+                                    { feature: "Alert Type", others: "SMS Only ❌", qraksha: "AI Voice Call ✅" },
+                                    { feature: "GPS Tracking", others: "Manual ❌", qraksha: "Automatic ✅" },
+                                    { feature: "Cost", others: "Monthly Fee ❌", qraksha: "One-time ✅" },
                                 ].map((row, idx) => (
                                     <tr key={idx} className="hover:bg-gray-50">
                                         <td className="px-6 py-4 font-semibold text-black">{row.feature}</td>
                                         <td className="px-6 py-4 text-center text-slate-800">{row.others}</td>
-                                        <td className="px-6 py-4 text-center font-bold text-green-600 bg-green-50">{row.qrdigit}</td>
+                                        <td className="px-6 py-4 text-center font-bold text-green-600 bg-green-50">{row.qraksha}</td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -597,58 +597,6 @@ export default function HomePage() {
                 </div>
             </section>
 
-            {/* ============================================================
-                FINAL CTA - Big & Bold
-            ============================================================ */}
-            {/* <section className="py-20 bg-gradient-to-br from-orange-500 via-red-500 to-pink-500 text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-black/20"></div>
-
-                <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-                    <h2 className="text-5xl md:text-6xl font-black mb-6">
-                        Aaj Hi Secure Karein! 🛡️
-                    </h2>
-
-                    <p className="text-2xl mb-8 font-semibold">
-                        50,000+ families already trust QRdigit
-                    </p>
-
-                    <div className="bg-white/10 backdrop-blur-md rounded-2xl p-8 mb-8 inline-block">
-                        <div className="text-6xl font-black mb-2">₹299</div>
-                        <div className="text-xl line-through opacity-75">₹399</div>
-                        <div className="bg-green-500 text-white px-4 py-2 rounded-full font-bold mt-3 inline-block">
-                            25% OFF Today!
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-                        <Link href="/shop" className="bg-white text-orange-600 px-12 py-5 rounded-full font-black text-2xl hover:bg-gray-100 shadow-2xl transform hover:scale-105 transition-all">
-                            Order Now →
-                        </Link>
-                        <Link href="/login" className="border-2 border-white px-12 py-5 rounded-full font-bold text-xl hover:bg-white/10">
-                            Login Dashboard
-                        </Link>
-                    </div>
-
-                    <div className="flex flex-wrap justify-center gap-6 text-sm">
-                        <div className="flex items-center gap-2">
-                            <CheckCircle className="w-5 h-5" />
-                            <span>Free Delivery</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <CheckCircle className="w-5 h-5" />
-                            <span>2-Day Shipping</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <CheckCircle className="w-5 h-5" />
-                            <span>Lifetime Support</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <CheckCircle className="w-5 h-5" />
-                            <span>100% Secure</span>
-                        </div>
-                    </div>
-                </div>
-            </section> */}
 
             <Footer />
         </main>

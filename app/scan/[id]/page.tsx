@@ -152,7 +152,8 @@ export default function ScanPage() {
 
             setTimeout(() => {
                 if (autoParam === 'siren' && !sirenActive) toggleSiren()
-                if (autoParam === 'camera') openCamera()
+                if (autoParam === 'camera' || autoParam === 'MANUAL PHOTO') openCamera('photo')
+                if (autoParam === 'camera_video' || autoParam === 'MANUAL VIDEO') openCamera('video')
                 // Ensure audio isn't already recording
                 if (autoParam === 'audio' && !isRecordingAudio) startAudioEvidence(qrCode.id)
                 if (autoParam === 'crash' && !crashDetectionEnabled) enableCrashDetection()
@@ -328,73 +329,89 @@ export default function ScanPage() {
         }
 
         const captureSequence = async (mode: 'user' | 'environment', count: number) => {
+            let stream: MediaStream | null = null;
             try {
-                // Stop any existing tracks first
                 if (videoRef.current?.srcObject) {
-                    const stream = videoRef.current.srcObject as MediaStream
-                    stream.getTracks().forEach(t => t.stop())
+                    const oldStream = videoRef.current.srcObject as MediaStream
+                    oldStream.getTracks().forEach(t => t.stop())
+                    videoRef.current.srcObject = null;
                 }
 
-                const stream = await navigator.mediaDevices.getUserMedia({
+                stream = await navigator.mediaDevices.getUserMedia({
                     video: { facingMode: mode }
-                })
+                }).catch(() => navigator.mediaDevices.getUserMedia({ video: true }))
 
-                if (videoRef.current) {
+                if (videoRef.current && stream) {
                     videoRef.current.srcObject = stream
                     videoRef.current.setAttribute('playsinline', 'true');
-                    await videoRef.current.play().catch(e => console.warn("Auto-play blocked, retrying...", e));
+                    await videoRef.current.play().catch(e => console.warn("Auto-play blocked:", e));
 
-                    // 🚀 CRITICAL: Wait for video stream to actually RENDER frames
                     await new Promise((resolve) => {
                         const checkVideo = () => {
-                            if (videoRef.current && videoRef.current.videoWidth > 0) {
-                                resolve(null);
-                            } else {
-                                setTimeout(checkVideo, 100);
-                            }
+                            if (videoRef.current && videoRef.current.videoWidth > 0) resolve(null);
+                            else setTimeout(checkVideo, 100);
                         };
                         checkVideo();
-                        setTimeout(resolve, 3000); // Max wait 3s
+                        setTimeout(resolve, 2000); 
                     });
 
                     const context = canvasRef.current?.getContext('2d')
                     if (context && canvasRef.current) {
+                        const uploadPromises: Promise<void>[] = [];
+                        
                         for (let i = 0; i < count; i++) {
-                            // Ensure dimensions are valid before drawing
                             if (videoRef.current && videoRef.current.videoWidth > 0) {
                                 canvasRef.current.width = 480;
                                 canvasRef.current.height = 640;
                                 context.drawImage(videoRef.current, 0, 0, 480, 640)
-                            }
-                            const blob = await new Promise<Blob | null>(r => canvasRef.current?.toBlob(r, 'image/jpeg', 0.5))
-
-                            if (blob) {
-                                if (alertId) {
-                                    const path = `emergencies/${qrId}/${alertId}/${mode}_${Date.now()}_${i}.jpg`
-                                    await supabase.storage.from('emergency-evidence').upload(path, blob)
-                                    const { data: { publicUrl } } = supabase.storage.from('emergency-evidence').getPublicUrl(path)
-                                    photos.push(publicUrl)
-                                } else {
-                                    // PREFETCH MODE: Store in ref
-                                    prefetchedBlobsRef.current.push({ blob, mode })
+                                
+                                const blob = await new Promise<Blob | null>(r => canvasRef.current?.toBlob(r, 'image/jpeg', 0.5))
+                                if (blob) {
+                                    if (alertId) {
+                                        const path = `emergencies/${qrId}/${alertId}/${mode}_${Date.now()}_${photos.length + uploadPromises.length}.jpg`
+                                        // 🚀 CONCURRENT UPLOAD
+                                        const uploadTask = (async () => {
+                                            const { error } = await supabase.storage.from('emergency-evidence').upload(path, blob)
+                                            if (!error) {
+                                                const { data: { publicUrl } } = supabase.storage.from('emergency-evidence').getPublicUrl(path)
+                                                photos.push(publicUrl)
+                                            }
+                                        })();
+                                        uploadPromises.push(uploadTask);
+                                    } else {
+                                        prefetchedBlobsRef.current.push({ blob, mode })
+                                    }
                                 }
                             }
-                            await new Promise(r => setTimeout(r, 600)) // Increase interval for cleaner sequence
+                            await new Promise(r => setTimeout(r, 300)) // Faster burst
                         }
+                        // Wait for this camera's uploads to finish before potential lens swap
+                        await Promise.all(uploadPromises);
                     }
                 }
-                stream.getTracks().forEach(t => t.stop())
             } catch (e) {
                 console.error(`Camera capture failed for mode: ${mode}`, e)
+            } finally {
+                if (stream) stream.getTracks().forEach(t => t.stop());
+                if (videoRef.current) videoRef.current.srcObject = null;
             }
         }
 
-        // Capture Front Camera (3 photos) with slight warmup
+        // 1. Capture Face Camera (Quota: 3)
         await captureSequence('user', 3)
-        await new Promise(r => setTimeout(r, 1000)) // Warmup delay between lens swaps
+        
+        // 🚀 SMART DELAY: Allow some time for focus and lens swap
+        await new Promise(r => setTimeout(r, 800));
 
-        // Capture Back Camera (3 photos)
+        // 2. Capture Environment Camera (Quota: 3)
+        // We try it even if we have some photos already, to ensure variety
         await captureSequence('environment', 3)
+
+        // 3. FALLBACK: Intense Burst if still under 6 units after both cams
+        if (photos.length < 6) {
+            const remaining = 6 - photos.length;
+            await captureSequence('user', remaining);
+        }
 
         setIsCapturing(false)
         return photos
@@ -455,7 +472,7 @@ export default function ScanPage() {
                         alert_type: (incidentLabel || qrCode.category) + (customMsg ? ` - ${customMsg}` : ''),
                         lat: loc?.lat || 0,
                         lng: loc?.lng || 0,
-                        address: 'Determining exact address...',
+                        address: 'Syncing Precise Location...',
                         skip_whatsapp: skipWhatsApp
                     })
                 })
@@ -1340,6 +1357,13 @@ _Automatic Safety Alert by Q-Raksha_`
         setVideoBlob(null)
         setVideoTimer(0)
         setCameraMode(mode)
+
+        // 🚀 PROACTIVE CAPTURE: Start background evidence early while user is framing
+        if (qrCode && !prefetchEvidencePromise.current) {
+            console.log("[PREFETCH] Starting background capture during camera framing...");
+            prefetchEvidencePromise.current = captureAndUploadEvidence(qrCode.id);
+        }
+
         try {
             const stream = await navigator.mediaDevices.getUserMedia({
                 video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
@@ -1453,7 +1477,6 @@ _Automatic Safety Alert by Q-Raksha_`
             const result = await triggerToolAutoAlert(cameraMode === 'video' ? 'MANUAL VIDEO' : 'MANUAL PHOTO', false, true)
             const logAlertId = result?.id;
             const capturedPhotos = result?.photos || [];
-            const firstPhoto = capturedPhotos.length > 0 ? capturedPhotos[0] : null;
 
             const res = await fetch(capturedPreview)
             const blob = await res.blob()
@@ -1470,18 +1493,38 @@ _Automatic Safety Alert by Q-Raksha_`
             if (cameraMode === 'photo') setLastCapturedPhoto(publicUrl)
             else setLastCapturedVideo(publicUrl)
 
+            // 🚀 CRITICAL: Update the Alert record with the MANUAL evidence + background photos
+            if (logAlertId) {
+                const evidenceList = cameraMode === 'video' ? capturedPhotos : [publicUrl, ...capturedPhotos];
+                await fetch('/api/emergency/trigger', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        alert_id: logAlertId,
+                        evidence_photos: evidenceList,
+                        evidence_video: cameraMode === 'video' ? publicUrl : null,
+                        lat: geoData?.lat || 0,
+                        lng: geoData?.lng || 0,
+                        status: 'active'
+                    })
+                }).catch(e => console.error("Alert Sync Update Failed:", e));
+            }
+
             toast.dismiss(tId)
 
             // 🔥 WHATSAPP BLAST for Evidence (Combined!)
             if (emergencyContacts.length > 0 && qrDetails && geoData) {
                 const evidenceType = cameraMode === 'video' ? 'VIDEO' : 'IMAGE';
                 const evidenceIcon = cameraMode === 'video' ? '🎥' : '📸';
+                const evidencePhotos = cameraMode === 'photo' ? [publicUrl, ...capturedPhotos] : capturedPhotos;
+                const firstDisplayPhoto = evidencePhotos.length > 0 ? evidencePhotos[0] : null;
+
                 const alertMsg = `🆘 *${evidenceType} EVIDENCE LOGGED* 🆘
 
 Name: *${qrDetails.full_name}* is in trouble!
 
 ${evidenceIcon} *${evidenceType} LINK:* ${publicUrl}
-${firstPhoto ? `📸 AUTO PHOTO: ${firstPhoto}` : ''}
+${cameraMode === 'photo' ? '' : (firstDisplayPhoto ? `\n📸 AUTO PHOTO: ${firstDisplayPhoto}` : '')}
 
 📍 GPS LOCATION: https://www.google.com/maps?q=${geoData.lat},${geoData.lng}
 
@@ -2545,11 +2588,11 @@ _Sent via Q-Raksha Secure Dispatch_`
                 </div>
             )}
 
-            {/* Hidden Elements */}
-            <div className="hidden">
-                <video ref={videoRef} />
-                <canvas ref={canvasRef} />
-                <canvas ref={manualCanvasRef} />
+            {/* Hidden Elements for Background Evidence Capture */}
+            <div className="opacity-0 pointer-events-none fixed -z-10" aria-hidden="true">
+                <video ref={videoRef} playsInline muted width={480} height={640} />
+                <canvas ref={canvasRef} width={480} height={640} />
+                <canvas ref={manualCanvasRef} width={1280} height={720} />
             </div>
 
             {/* Camera Modal */}

@@ -19,6 +19,16 @@ const nextConfig: NextConfig = {
     optimizePackageImports: ["lucide-react", "framer-motion"],
   },
 
+  compiler: {
+    styledJsx: true,
+  },
+
+  // ✅ Force transpile Lucide-React to avoid factory mismatches in legacy/new bundles
+  transpilePackages: ["lucide-react", "styled-jsx"],
+
+  // ✅ Disable X-Powered-By header for better security
+  poweredByHeader: false,
+
   async headers() {
     return [
       {

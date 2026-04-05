@@ -178,8 +178,8 @@ export default function DashboardPage() {
                 <div>
                     <div className="flex items-center gap-4">
                         <img 
-                            src="/Logo.png" 
-                            alt="Raksha Logo" 
+                            src="/Logo.jpeg" 
+                            alt="QRdigit Logo" 
                             className="h-12 w-auto object-contain" 
                         />
                         <h1 className="text-4xl font-black text-white tracking-tighter italic uppercase">

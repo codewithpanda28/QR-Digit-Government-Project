@@ -57,19 +57,12 @@ export default function Navbar() {
         <nav className="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-md z-50 border-b-2 border-indigo-600 shadow-sm">
             <div className="max-w-[1400px] mx-auto px-6 flex items-center justify-between h-20">
                 {/* Logo — priority:true so it loads immediately (above the fold) */}
-                <NextLink href="/" className="group flex items-center gap-3">
-                    <div className="relative">
-                        <div className="w-10 h-10 bg-indigo-600 rounded-xl flex items-center justify-center transform group-hover:rotate-12 transition-transform duration-300 shadow-lg shadow-indigo-200">
-                            <Shield className="w-6 h-6 text-white" />
-                        </div>
-                        <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-emerald-500 border-2 border-white rounded-full"></div>
-                    </div>
-                    <div className="flex flex-col">
-                        <span className="text-xl font-bold tracking-tight text-gray-900 group-hover:text-indigo-600 transition-colors">
-                            Q-<span className="text-indigo-600">Raksha</span>
-                        </span>
-                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest leading-none">Smart Safety</span>
-                    </div>
+                <NextLink href="/" className="group flex items-center">
+                    <img 
+                        src="/Logo.jpeg" 
+                        alt="QRdigit Logo" 
+                        className="h-12 md:h-14 w-auto object-contain transform group-hover:scale-105 transition-transform duration-300" 
+                    />
                 </NextLink>
 
                 {/* Desktop Nav */}

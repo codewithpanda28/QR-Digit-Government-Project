@@ -73,8 +73,8 @@ export default function LoginPage() {
                 {/* Logo */}
                 <Link href="/" className="flex flex-col items-center justify-center mb-10">
                     <img 
-                        src="/Logo.png" 
-                        alt="Raksha Logo" 
+                        src="/Logo.jpeg" 
+                        alt="QRdigit Logo" 
                         className="h-16 md:h-20 w-auto object-contain hover:scale-105 transition-transform" 
                     />
                 </Link>

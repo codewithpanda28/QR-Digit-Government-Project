@@ -19,24 +19,28 @@ export default function RegisterPage() {
 
     async function handleSendOTP(e: React.FormEvent) {
         e.preventDefault()
+        if (!formData.email || !formData.name) return toast.error('Please fill all details')
         setLoading(true)
 
         try {
-            // Send OTP to email
-            const { error } = await supabase.auth.signInWithOtp({
-                email: formData.email.trim().toLowerCase(),
-                options: {
-                    shouldCreateUser: true,
-                    data: {
-                        name: formData.name,
-                    }
-                }
-            })
+            // 2. Call Custom OTP API (Gmail/Nodemailer) - This bypasses Supabase rate limits
+            const res = await fetch('/api/auth/custom-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    email: formData.email.trim().toLowerCase(),
+                    name: formData.name 
+                })
+            });
+            const result = await res.json();
 
-            if (error) throw error
-
-            setStep('otp')
-            toast.success('OTP sent to your email!')
+            if (result.success) {
+                toast.success("Security code sent via Gmail!");
+                setStep('otp')
+            } else {
+                console.error("Custom OTP failed:", result.error || "Uknown error");
+                toast.error(`OTP Service Unavailable: ${result.error || 'Server Config Missing'}`);
+            }
         } catch (error: any) {
             console.error('Registration error:', error)
             toast.error(error.message || 'Failed to send OTP')
@@ -47,35 +51,28 @@ export default function RegisterPage() {
 
     async function handleVerifyOTP(e: React.FormEvent) {
         e.preventDefault()
+        if (otp.length !== 6) return
         setLoading(true)
 
         try {
             const cleanEmail = formData.email.trim().toLowerCase()
-            console.log('Verifying OTP for Register:', cleanEmail)
+            
+            // 2. Call Custom Verification System (Bypasses Supabase Auth public tokens)
+            const res = await fetch('/api/auth/verify-otp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: cleanEmail, code: otp })
+            });
 
-            // Step 1: Try 'signup' FIRST (Most likely for new users on Register page)
-            let { data, error } = await supabase.auth.verifyOtp({
-                email: cleanEmail,
-                token: otp,
-                type: 'signup'
-            })
+            const result = await res.json();
 
-            // Step 2: Fallback to 'email' if 'signup' fails (for existing users or specific configs)
-            if (error) {
-                console.log('Signup type failed, trying email type...', error.message)
-                const retry = await supabase.auth.verifyOtp({
-                    email: cleanEmail,
-                    token: otp,
-                    type: 'email'
-                })
-                data = retry.data
-                error = retry.error
+            if (res.ok && result.success && result.login_link) {
+                toast.success("Account created and verified!");
+                // 🚀 Bypassing Public Verify: Redirecting to the ACTION_LINK (Magic Link)
+                window.location.replace(result.login_link);
+            } else {
+                throw new Error(result.error || "Verification failed");
             }
-
-            if (error) throw error
-
-            toast.success('Account created successfully!')
-            router.push('/admin/dashboard')
         } catch (error: any) {
             console.error('Final OTP verification error:', error)
             toast.error(error.message || 'Verification failed. Please check the code.')
@@ -92,7 +89,7 @@ export default function RegisterPage() {
                     {/* Logo */}
                     <Link href="/" className="flex items-center justify-center mb-10">
                         <img 
-                            src="/Logo.png" 
+                            src="/Logo.jpeg" 
                             alt="Raksha Logo" 
                             className="h-16 md:h-20 w-auto object-contain hover:scale-105 transition-transform" 
                         />
@@ -188,8 +185,8 @@ export default function RegisterPage() {
                 {/* Logo */}
                 <Link href="/" className="flex items-center justify-center mb-10">
                     <img 
-                        src="/Logo.png" 
-                        alt="Raksha Logo" 
+                        src="/Logo.jpeg" 
+                        alt="QRdigit Logo" 
                         className="h-16 md:h-20 w-auto object-contain hover:scale-105 transition-transform" 
                     />
                 </Link>

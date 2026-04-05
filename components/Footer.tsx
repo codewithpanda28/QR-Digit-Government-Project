@@ -12,16 +12,12 @@ export default function Footer() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-16 mb-16">
                     {/* Branding */}
                     <div className="lg:col-span-2 space-y-8">
-                        <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-xl shadow-indigo-100">
-                                <Shield className="w-7 h-7 text-white" />
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="text-3xl font-black tracking-tighter text-zinc-900 leading-none">
-                                    Q-<span className="text-indigo-600">Raksha</span>
-                                </span>
-                                <span className="text-[10px] font-black text-indigo-500 uppercase tracking-[0.3em] mt-1">Smart Safety Matrix</span>
-                            </div>
+                        <div className="flex items-center">
+                            <img 
+                                src="/Logo.jpeg" 
+                                alt="QRdigit Logo" 
+                                className="h-16 w-auto object-contain" 
+                            />
                         </div>
                         <p className="text-zinc-500 font-medium text-sm leading-relaxed max-w-[320px]">
                             Redefining public safety with intelligent QR protocols. Secure, private, and global emergency response infrastructure for everyone.
@@ -64,9 +60,9 @@ export default function Footer() {
                     <div className="space-y-8">
                         <h4 className="text-zinc-400 font-black text-[11px] uppercase tracking-[0.25em] mb-6">Contact Matrix</h4>
                         <div className="space-y-6">
-                            <Link href="mailto:support@q-raksha.in" className="flex flex-col gap-1 group">
+                            <Link href="mailto:support@qrdigit.com" className="flex flex-col gap-1 group">
                                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Email Support</span>
-                                <span className="text-sm font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">support@q-raksha.in</span>
+                                <span className="text-sm font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">support@qrdigit.com</span>
                             </Link>
                             <Link href="tel:+919110083617" className="flex flex-col gap-1 group">
                                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Hotline</span>
@@ -94,7 +90,7 @@ export default function Footer() {
                     </div>
                     
                     <div className="flex flex-col items-center lg:items-end gap-3 text-[10px] text-zinc-400 font-black uppercase tracking-[0.4em]">
-                        <p>© 2026 Q-RAKSHA | MISSION-CRITICAL OPS CONTROL</p>
+                        <p>© 2026 QRdigit | MISSION-CRITICAL OPS CONTROL</p>
                         <p className="flex items-center gap-2 flex-wrap justify-center lg:justify-end">
                              POWERED BY <a href="https://thinkaiq.com" target="_blank" className="text-zinc-900 font-black underline decoration-indigo-600 decoration-2">THINKAIQ X PIXEL FLAMES</a> 
                              <span className="w-1.5 h-1.5 bg-indigo-600 rounded-full hidden sm:block"></span> 

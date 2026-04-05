@@ -114,8 +114,8 @@ export default function SuperAdminLogin() {
                 {/* Logo */}
                 <div className="text-center mb-10 flex flex-col items-center">
                     <img 
-                        src="/Logo.png" 
-                        alt="Raksha Logo" 
+                        src="/Logo.jpeg" 
+                        alt="QRdigit Logo" 
                         className="h-16 md:h-20 w-auto object-contain hover:scale-105 transition-transform" 
                     />
                     <p className="text-purple-200 mt-4 uppercase tracking-[0.2em] font-black text-[10px]">Super Admin Access</p>
