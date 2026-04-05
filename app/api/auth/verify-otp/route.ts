@@ -66,18 +66,23 @@ export async function POST(request: Request) {
 
             if (retryError) throw retryError;
             
+            const finalRetryLink = retryData.properties.action_link.replace('http://localhost:3000', appUrl);
             return NextResponse.json({ 
                 success: true, 
-                login_link: retryData.properties.action_link 
+                login_link: finalRetryLink 
             });
         }
 
         // 4. Clean up the OTP record after successful use
         await supabaseAdmin.from('otp_system').delete().eq('email', email.toLowerCase());
 
+        // 🚀 FORCE DOMAIN MATCH: Supabase magic links might default to localhost due to SITE_URL settings.
+        // We aggressively ensure the redirect points back to the CURRENT production host.
+        const finalLink = linkData.properties.action_link.replace('http://localhost:3000', appUrl);
+
         return NextResponse.json({ 
             success: true, 
-            login_link: linkData.properties.action_link 
+            login_link: finalLink 
         });
 
     } catch (error: any) {
