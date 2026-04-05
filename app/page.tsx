@@ -69,7 +69,7 @@ export default function HomePage() {
                             {/* CTA Buttons */}
                             <div className="flex gap-4">
                                 <Link href="/shop" className="bg-orange-600 hover:bg-orange-700 text-white px-8 py-4 rounded-lg font-bold text-lg flex items-center gap-2 shadow-lg">
-                                    ₹299 Mein Order Karein
+                                    Order Karein
                                     <ArrowRight className="w-5 h-5" />
                                 </Link>
                                 <Link href="#demo" className="border-2 border-gray-300 hover:border-blue-600 px-8 py-4 rounded-lg font-bold text-lg text-gray-900">
@@ -85,7 +85,7 @@ export default function HomePage() {
                         <div className="relative">
                             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
                                 <Image
-                                    src="/products/hero.jpeg"
+                                    src="/products/QRDigit.jpeg"
                                     alt="QRdigit Safety Tag"
                                     width={600}
                                     height={600}
@@ -95,7 +95,7 @@ export default function HomePage() {
                             </div>
 
                             {/* Floating Feature Cards */}
-                            <div className="absolute -left-4 top-1/4 bg-white p-4 rounded-xl shadow-xl border-2 border-green-200 max-w-[200px]">
+                            {/* <div className="absolute -left-4 top-1/4 bg-white p-4 rounded-xl shadow-xl border-2 border-green-200 max-w-[200px]">
                                 <div className="flex items-center gap-2 mb-2">
                                     <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
                                         <CheckCircle className="w-5 h-5 text-green-600" />
@@ -123,7 +123,7 @@ export default function HomePage() {
                                     <span className="font-bold text-sm text-black">Privacy Safe</span>
                                 </div>
                                 <p className="text-xs text-slate-800">Number hidden rehta hai 🔒</p>
-                            </div>
+                            </div> */}
                         </div>
 
                     </div>
@@ -160,12 +160,7 @@ export default function HomePage() {
                         ].map((item, idx) => (
                             <div key={idx} className="bg-white rounded-xl overflow-hidden shadow-lg border-2 border-red-200">
                                 <div className="relative h-48">
-                                    <Image
-                                        src={item.image}
-                                        alt={item.problem}
-                                        fill
-                                        className="object-cover"
-                                    />
+                                    <div className="absolute inset-0 bg-slate-100 flex items-center justify-center text-slate-300 font-bold text-sm">Image yaha aayega</div>
                                     <div className="absolute top-4 left-4 bg-red-500 text-white px-4 py-2 rounded-full font-bold text-sm">
                                         ❌ Problem
                                     </div>
@@ -211,13 +206,7 @@ export default function HomePage() {
                                 </Link>
                             </div>
                             <div className="relative">
-                                <Image
-                                    src="/products/hero.jpeg"
-                                    alt="Solution"
-                                    width={400}
-                                    height={400}
-                                    className="rounded-xl shadow-2xl"
-                                />
+                                <div className="w-full max-w-[400px] aspect-square bg-slate-100 rounded-xl shadow-2xl flex items-center justify-center text-slate-300 font-bold text-sm mx-auto">Image yaha aayega</div>
                             </div>
                         </div>
                     </div>
@@ -285,12 +274,7 @@ export default function HomePage() {
 
                                 {/* Image Section */}
                                 <div className="relative h-64 overflow-hidden">
-                                    <Image
-                                        src={product.image}
-                                        alt={product.title}
-                                        fill
-                                        className="object-cover group-hover:scale-110 transition-transform duration-500"
-                                    />
+                                    <div className="absolute inset-0 bg-slate-100 flex items-center justify-center text-slate-300 font-bold text-sm">Image yaha aayega</div>
                                     {/* Price Tag */}
                                     <div className="absolute top-4 right-4 bg-orange-600 text-white px-4 py-2 rounded-full font-bold shadow-lg">
                                         {product.price}
@@ -512,12 +496,7 @@ export default function HomePage() {
                         ].map((testimonial, idx) => (
                             <div key={idx} className="bg-white rounded-2xl overflow-hidden shadow-lg border-2 border-gray-100">
                                 <div className="relative h-48">
-                                    <Image
-                                        src={testimonial.image}
-                                        alt={testimonial.name}
-                                        fill
-                                        className="object-cover"
-                                    />
+                                    <div className="absolute inset-0 bg-slate-100 flex items-center justify-center text-slate-300 font-bold text-sm">Image yaha aayega</div>
                                 </div>
                                 <div className="p-6">
                                     <div className="flex items-center gap-1 mb-3">

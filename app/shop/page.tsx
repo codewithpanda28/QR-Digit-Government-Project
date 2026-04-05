@@ -234,15 +234,9 @@ function ShopContent() {
                                 {cat.products.map((product, j) => (
                                     <div key={j} className="shop-card rounded-2xl overflow-hidden flex flex-col group">
                                         <div className="aspect-video overflow-hidden bg-gray-100 relative">
-                                            <Image
-                                                src={product.image}
-                                                alt={product.name}
-                                                fill
-                                                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
-                                                className="object-cover group-hover:scale-105 transition-transform duration-500"
-                                                loading="lazy"
-                                                quality={80}
-                                            />
+                                            <div className="absolute inset-0 bg-slate-200 flex items-center justify-center text-slate-400 font-bold text-xs uppercase tracking-wider">
+                                                Image Space
+                                            </div>
                                             <div className="absolute top-3 left-3 bg-green-500 text-white px-2.5 py-1 rounded-full text-[10px] font-black">
                                                 In Stock
                                             </div>
