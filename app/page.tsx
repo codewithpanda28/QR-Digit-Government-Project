@@ -86,7 +86,7 @@ export default function HomePage() {
                             <div className="relative rounded-2xl overflow-hidden shadow-2xl">
                                 <Image
                                     src="/products/hero.jpeg"
-                                    alt="Q-Raksha Safety Tag"
+                                    alt="QRdigit Safety Tag"
                                     width={600}
                                     height={600}
                                     className="w-full h-auto"
@@ -189,7 +189,7 @@ export default function HomePage() {
                     <div className="bg-gradient-to-br from-green-50 to-blue-50 rounded-2xl p-8 md:p-12 border-2 border-green-200">
                         <div className="grid md:grid-cols-2 gap-8 items-center">
                             <div>
-                                <h3 className="text-3xl font-black mb-6 text-gray-900">Q-Raksha Se Ye Hota Hai:</h3>
+                                <h3 className="text-3xl font-black mb-6 text-gray-900">QRdigit Se Ye Hota Hai:</h3>
                                 <div className="space-y-4">
                                     {[
                                         "Koi bhi QR scan kare → Aapko turant AI call",

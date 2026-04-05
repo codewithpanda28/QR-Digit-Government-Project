@@ -65,13 +65,13 @@ export default function Footer() {
                     <div className="space-y-8">
                         <h4 className="text-zinc-400 font-black text-[11px] uppercase tracking-[0.25em] mb-6">Contact Matrix</h4>
                         <div className="space-y-6">
-                            <Link href="mailto:support@qrdigit.com" className="flex flex-col gap-1 group">
+                            <Link href="mailto:contact@thinkaiq.com" className="flex flex-col gap-1 group">
                                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Email Support</span>
-                                <span className="text-sm font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">support@qrdigit.com</span>
+                                <span className="text-sm font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">contact@thinkaiq.com</span>
                             </Link>
-                            <Link href="tel:+919110083617" className="flex flex-col gap-1 group">
+                            <Link href="tel:+918252472186" className="flex flex-col gap-1 group">
                                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Hotline</span>
-                                <span className="text-sm font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">+91 91100 83617</span>
+                                <span className="text-sm font-bold text-zinc-900 group-hover:text-indigo-600 transition-colors">+91 8252472186</span>
                             </Link>
                             <div className="flex flex-col gap-1">
                                 <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest">Operations</span>

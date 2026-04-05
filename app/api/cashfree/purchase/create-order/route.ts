@@ -63,7 +63,7 @@ export async function POST(req: NextRequest) {
                 return_url: `${baseUrl}/api/cashfree/purchase/verify?order_id={order_id}&category=${category}&product=${encodeURIComponent(product_name)}`,
                 notify_url: `${baseUrl}/api/cashfree/webhook`
             },
-            order_note: `Q-Raksha QR: ${product_name} x${qty} | ${delivery_city}, ${delivery_state}`
+            order_note: `QRdigit QR: ${product_name} x${qty} | ${delivery_city}, ${delivery_state}`
         }
 
         if (!CASHFREE_APP_ID || !CASHFREE_SECRET_KEY) {

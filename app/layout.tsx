@@ -17,18 +17,18 @@ const outfit = Outfit({
 });
 
 export const metadata: Metadata = {
-  title: "Q-Raksha - India's #1 Safety QR Platform",
-  description: "Next-generation smart QR tags for child safety, women safety, elderly care, and vehicles. Q-Raksha saves lives with instant emergency alerts.",
-  keywords: "Q-Raksha, QR safety India, emergency alerts, child safety, women safety, elderly care, vehicle safety",
-  authors: [{ name: "Q-Raksha Team" }],
+  title: "QRdigit - India's #1 Safety QR Platform",
+  description: "Next-generation smart QR tags for child safety, women safety, elderly care, and vehicles. QRdigit saves lives with instant emergency alerts.",
+  keywords: "QRdigit, QR safety India, emergency alerts, child safety, women safety, elderly care, vehicle safety",
+  authors: [{ name: "QRdigit Team" }],
   icons: {
     icon: "/logo faviocn.jpeg",
   },
   openGraph: {
-    title: "Q-Raksha - India's #1 Safety QR",
+    title: "QRdigit - India's #1 Safety QR",
     description: "Intelligent QR-based safety platform for everyone",
-    url: "https://q-raksha.in/",
-    siteName: "Q-Raksha",
+    url: "https://www.qrdigit.com/",
+    siteName: "QRdigit",
     type: "website",
   },
 };

@@ -529,7 +529,7 @@ ${primaryEvidence ? `📸 Live Photo (Saboot): ${primaryEvidence}\n` : ''}
 📍 Location (Maps): ${mapLink}
 🏠 Address: ${address}
 
-_Automatic Safety Alert by Q-Raksha_`
+_Automatic Safety Alert by QRdigit_`
 
             // 🚀 FAST-TRACK WHATSAPP: Removed from here because it's now handled synchronously in the onClick handler
             // to bypass modern browser popup blockers which kill async window.open calls.
@@ -1111,7 +1111,7 @@ _Automatic Safety Alert by Q-Raksha_`
 
                 // 🔥 WhatsApp Redirection for Audio + PHOTOS (Combined!)
                 if (emergencyContacts.length > 0 && qrDetails && geoData) {
-                    const alertMsg = `🆘 *URGENT AUDIO/EVIDENCE LOGGED* 🆘\n\nI have recorded an audio log and captured live photos for safety.\n\n🎙️ *AUDIO:* ${publicUrl}${firstPhoto ? `\n📸 *PHOTO:* ${firstPhoto}` : ''}\n\n📍 *GPS LOCATION:* https://www.google.com/maps?q=${geoData.lat},${geoData.lng}\n\n_Sent via Q-Raksha Secure Dispatch_`
+                    const alertMsg = `🆘 *URGENT AUDIO/EVIDENCE LOGGED* 🆘\n\nI have recorded an audio log and captured live photos for safety.\n\n🎙️ *AUDIO:* ${publicUrl}${firstPhoto ? `\n📸 *PHOTO:* ${firstPhoto}` : ''}\n\n📍 *GPS LOCATION:* https://www.google.com/maps?q=${geoData.lat},${geoData.lng}\n\n_Sent via QRdigit Secure Dispatch_`
 
                     emergencyContacts.forEach((contact, index) => {
                         const primaryPhone = contact.phone.replace(/\D/g, '')
@@ -1178,7 +1178,7 @@ _Automatic Safety Alert by Q-Raksha_`
 
                     // 🔥 WhatsApp BLAST (Combined Message)
                     if (emergencyContacts.length > 0 && qrDetails && geoData) {
-                        const alertMsg = `🆘 *URGENT VIDEO/EVIDENCE* 🆘\n\nI have recorded a video incident and captured live photos.\n\n🎥 *VIDEO:* ${publicUrl}${firstPhoto ? `\n📸 *PHOTO:* ${firstPhoto}` : ''}\n\n📍 *GPS LOCATION:* https://www.google.com/maps?q=${geoData.lat},${geoData.lng}\n\n_Sent via Q-Raksha Secure Dispatch_`
+                        const alertMsg = `🆘 *URGENT VIDEO/EVIDENCE* 🆘\n\nI have recorded a video incident and captured live photos.\n\n🎥 *VIDEO:* ${publicUrl}${firstPhoto ? `\n📸 *PHOTO:* ${firstPhoto}` : ''}\n\n📍 *GPS LOCATION:* https://www.google.com/maps?q=${geoData.lat},${geoData.lng}\n\n_Sent via QRdigit Secure Dispatch_`
 
                         emergencyContacts.forEach((contact, index) => {
                             const primaryPhone = contact.phone.replace(/\D/g, '')
@@ -1528,7 +1528,7 @@ ${cameraMode === 'photo' ? '' : (firstDisplayPhoto ? `\n📸 AUTO PHOTO: ${first
 
 📍 GPS LOCATION: https://www.google.com/maps?q=${geoData.lat},${geoData.lng}
 
-_Sent via Q-Raksha Secure Dispatch_`
+_Sent via QRdigit Secure Dispatch_`
                 const primaryPhone = emergencyContacts[0].phone.replace(/\D/g, '')
                 const waUrl = `https://wa.me/${primaryPhone}?text=${encodeURIComponent(alertMsg)}`
 
@@ -2000,7 +2000,7 @@ _Sent via Q-Raksha Secure Dispatch_`
 
                         <div className="pt-4 border-t border-slate-50">
                             <p className="text-[9px] text-slate-300 font-bold uppercase tracking-[0.5em]">
-                                Q-Raksha • Advanced Life Shield
+                                QRdigit • Advanced Life Shield
                             </p>
                         </div>
                     </div>

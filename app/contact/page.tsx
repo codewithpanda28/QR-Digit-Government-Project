@@ -15,13 +15,13 @@ export default function ContactPage() {
                 <section className="max-w-[1200px] mx-auto px-6 mb-24 text-center">
                     <div className="inline-flex items-center gap-3 px-5 py-2 bg-red-600 text-white rounded-full shadow-lg mb-6">
                         <Siren className="w-5 h-5 animate-bounce" />
-                        <span className="text-xs font-bold tracking-widest uppercase">Q-Raksha — India's #1 Safety QR</span>
+                        <span className="text-xs font-bold tracking-widest uppercase">QRdigit — India's #1 Safety QR</span>
                     </div>
                     <h1 className="text-5xl md:text-7xl font-semibold leading-[1.05] tracking-tight mb-6">
                         Humse <span className="text-red-600 italic">Baat Karein.</span>
                     </h1>
                     <p className="text-xl font-light text-slate-500 max-w-2xl mx-auto">
-                        Aapko madad chahiye ya koi sawaal pochhna hai? Humari Q-Raksha team aapko 24/7 support karne ke liye taiyaar hai.
+                        Aapko madad chahiye ya koi sawaal pochhna hai? Humari QRdigit team aapko 24/7 support karne ke liye taiyaar hai.
                     </p>
                 </section>
 
@@ -59,7 +59,7 @@ export default function ContactPage() {
                                 </div>
                                 <h3 className="text-3xl font-semibold">Humara Head Office</h3>
                                 <p className="text-slate-500 leading-relaxed font-light">
-                                    Q-Raksha Safety Systems<br />
+                                    QRdigit Safety Systems<br />
                                     Dhanbad, Jharkhand, India - 828307<br />
                                     Aap chaho toh offline bhi aa sakte ho!
                                 </p>
@@ -85,7 +85,7 @@ export default function ContactPage() {
                             <Search className="w-5 h-5" /> Order Track Karein
                         </Link>
                         <Link href="/shop" className="px-10 py-5 bg-[#1a1a1b] text-white rounded-2xl font-semibold text-lg hover:scale-105 transition-all shadow-xl flex items-center justify-center gap-3">
-                            <ShieldCheck className="w-5 h-5" /> Q-Raksha Shop Menu
+                                            <ShieldCheck className="w-5 h-5" /> QRdigit Shop Menu
                         </Link>
                     </div>
                 </section> */}

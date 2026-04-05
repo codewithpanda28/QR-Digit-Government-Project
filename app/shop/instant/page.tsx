@@ -34,7 +34,7 @@ function InstantContent() {
     const searchParams = useSearchParams()
 
     const categoryName = searchParams.get('category') || 'vehicle'
-    const productName = searchParams.get('product') || 'Q-Raksha Safety Tag'
+    const productName = searchParams.get('product') || 'QRdigit Safety Tag'
     const isSuccess = searchParams.get('success') === 'true'
 
     const [step, setStep] = useState<'personal' | 'delivery' | 'review' | 'paying' | 'done'>(
@@ -142,7 +142,7 @@ function InstantContent() {
                         <h2 className="text-3xl font-bold text-slate-800">Order Place Ho Gaya! 🎉</h2>
                         <p className="text-slate-500 font-light text-lg leading-relaxed">
                             <strong>{form.customer_name || 'Aapka'}</strong> order confirm ho gaya hai.<br />
-                            Q-Raksha QR Tag 3-5 working days mein courier ke through aapke address par pahuch jaayega.
+                            QRdigit QR Tag 3-5 working days mein courier ke through aapke address par pahuch jaayega.
                         </p>
                     </div>
                     <div className="bg-slate-50 rounded-2xl p-6 text-left space-y-3 border border-slate-100">
@@ -287,7 +287,7 @@ function InstantContent() {
                                 <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600"><Truck className="w-5 h-5" /></div>
                                 <div>
                                     <h2 className="text-xl font-semibold">Delivery Address</h2>
-                                    <p className="text-sm text-slate-400 font-light">Q-Raksha tag courier se is address par aayega</p>
+                                    <p className="text-sm text-slate-400 font-light">QRdigit tag courier se is address par aayega</p>
                                 </div>
                             </div>
 
@@ -475,7 +475,7 @@ function InstantContent() {
                                 '🚚 Free Delivery (3-5 Days)',
                                 '🔒 Online Payment Only',
                                 '✅ Physical QR Tag Courier',
-                                '⚡ Lifetime Q-Raksha Access',
+                                '⚡ Lifetime QRdigit Access',
                             ].map((f, i) => (
                                 <p key={i} className="text-xs text-slate-500 font-medium flex items-center gap-2">{f}</p>
                             ))}

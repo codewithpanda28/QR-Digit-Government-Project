@@ -18,7 +18,7 @@ export default function AboutPage() {
                         <div className="space-y-8">
                                  <div className="inline-flex items-center gap-3 px-5 py-2 bg-red-600 text-white rounded-full shadow-lg">
                                      <Siren className="w-5 h-5 animate-bounce" />
-                                     <span className="text-xs font-bold tracking-widest uppercase">Q-Raksha — India's #1 Safety QR</span>
+                                     <span className="text-xs font-bold tracking-widest uppercase">QRdigit — India's #1 Safety QR</span>
                                  </div>
                             
                             <h1 className="text-5xl md:text-7xl font-semibold leading-[1.05] tracking-tight">
@@ -62,7 +62,7 @@ export default function AboutPage() {
                 <section className="bg-white py-24 border-y-2 border-slate-100">
                     <div className="max-w-[1200px] mx-auto px-6">
                         <div className="text-center mb-16 space-y-4">
-                            <span className="text-red-600 font-black text-xs uppercase tracking-[0.5em]">Q-Raksha Pillars</span>
+                            <span className="text-red-600 font-black text-xs uppercase tracking-[0.5em]">QRdigit Pillars</span>
                             <h2 className="text-4xl md:text-5xl font-semibold tracking-tight">Jispar Hum <span className="text-red-600">Bharosa</span> Karte Hain.</h2>
                         </div>
 
