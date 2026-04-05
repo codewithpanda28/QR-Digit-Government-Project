@@ -69,14 +69,14 @@ function InstantContent() {
 
     const totalAmount = unitPrice * form.quantity
 
-    function loadCashfreeScript(): Promise<void> {
+    function loadRazorpayScript(): Promise<void> {
         return new Promise((resolve, reject) => {
-            if ((window as any).Cashfree) { resolve(); return }
-            if (document.querySelector('script[src*="cashfree"]')) { resolve(); return }
+            if ((window as any).Razorpay) { resolve(); return }
+            if (document.querySelector('script[src*="razorpay"]')) { resolve(); return }
             const script = document.createElement('script')
-            script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js'
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js'
             script.onload = () => resolve()
-            script.onerror = () => reject(new Error('Cashfree load failed'))
+            script.onerror = () => reject(new Error('Razorpay load failed'))
             document.head.appendChild(script)
         })
     }
@@ -84,7 +84,14 @@ function InstantContent() {
     async function handlePayment(isTesting = false) {
         setLoading(true)
         try {
-            const res = await fetch('/api/cashfree/purchase/create-order', {
+            if (isTesting) {
+                setStep('done')
+                toast.success('Test mode — Order saved! ✅')
+                setLoading(false)
+                return
+            }
+
+            const res = await fetch('/api/razorpay/create-order', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -103,22 +110,58 @@ function InstantContent() {
             const data = await res.json()
             if (!res.ok) throw new Error(data.error)
 
-            if (isTesting) {
-                setStep('done')
-                toast.success('Test mode — Order saved! ✅')
-                setLoading(false)
-                return
-            }
+            await loadRazorpayScript()
 
-            if (!(window as any).Cashfree) await loadCashfreeScript()
-            const currentEnv = (process.env.NEXT_PUBLIC_CASHFREE_ENV || 'sandbox').trim().toLowerCase()
-            const cf = (window as any).Cashfree({
-                mode: currentEnv === 'production' ? 'production' : 'sandbox'
-            })
-            cf.checkout({ paymentSessionId: data.payment_session_id, redirectTarget: '_self' })
+            const options = {
+                key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, 
+                amount: data.amount * 100,
+                currency: data.currency,
+                name: "QRdigit",
+                description: `Purchase ${productName}`,
+                order_id: data.order_id, 
+                handler: async function (response: any) {
+                    try {
+                        const verifyRes = await fetch('/api/razorpay/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                razorpay_payment_id: response.razorpay_payment_id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_signature: response.razorpay_signature,
+                                category: categoryName,
+                                product: productName
+                            })
+                        });
+                        const verifyData = await verifyRes.json();
+                        
+                        if (verifyRes.ok) {
+                            setStep('done');
+                        } else {
+                            toast.error(verifyData.error || 'Payment verification failed');
+                        }
+                    } catch (e) {
+                         toast.error('Payment verification failed');
+                    }
+                },
+                prefill: {
+                    name: data.customer_name,
+                    email: data.customer_email,
+                    contact: data.customer_phone
+                },
+                theme: {
+                    color: "#DC2626"
+                }
+            };
+
+            const rzp = new (window as any).Razorpay(options);
+            rzp.on('payment.failed', function (response: any){
+                 toast.error('Payment Failed: ' + response.error.description);
+            });
+            rzp.open();
         } catch (err: any) {
             toast.error(err.message || 'Payment failed')
-            setLoading(false)
+        } finally {
+             setLoading(false)
         }
     }
 
@@ -434,7 +477,7 @@ function InstantContent() {
                             </div>
 
                             <p className="text-center text-xs text-slate-300 font-light">
-                                🔒 100% Secure Payment via Cashfree • Cash on Delivery Available Nahi Hai
+                                🔒 100% Secure Payment via Razorpay • Cash on Delivery Available Nahi Hai
                             </p>
                         </div>
                     )}
