@@ -36,7 +36,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'Content-Security-Policy',
-            value: "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk.cashfree.com https://www.cashfree.com;",
+            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://sdk.cashfree.com https://www.cashfree.com; style-src 'self' 'unsafe-inline'; img-src 'self' blob: data: https://zznzvwwtlnjnwqfhfzwc.supabase.co; connect-src 'self' https://zznzvwwtlnjnwqfhfzwc.supabase.co wss://zznzvwwtlnjnwqfhfzwc.supabase.co; font-src 'self' data:; frame-src 'self' https://www.cashfree.com;",
           },
         ],
       },

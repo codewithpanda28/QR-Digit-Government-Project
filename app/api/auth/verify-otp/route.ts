@@ -35,7 +35,9 @@ export async function POST(request: Request) {
         }
 
         // 3. User is verified! Now generate a Supabase Login Link (Admin bypass)
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+        const host = request.headers.get('host') || 'www.qrdigit.com';
+        const protocol = request.headers.get('x-forwarded-proto') || 'https';
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || `${protocol}://${host}`;
         const redirectUrl = `${appUrl.endsWith('/') ? appUrl : appUrl + '/'}login`;
 
         const { data: linkData, error: linkError } = await supabaseAdmin.auth.admin.generateLink({

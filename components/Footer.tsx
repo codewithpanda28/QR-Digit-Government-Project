@@ -1,11 +1,16 @@
 'use client'
 
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Shield, Mail, Phone, Clock, Globe, ShieldAlert, CheckCircle2, ChevronRight, Activity } from 'lucide-react'
 
 export default function Footer() {
+    const [mounted, setMounted] = useState(false);
+    useEffect(() => { setMounted(true); }, []);
+
+    if (!mounted) return null;
+
     return (
         <footer className="border-t-2 border-zinc-50 py-24 bg-zinc-50/50">
             <div className="max-w-[1400px] mx-auto px-6">

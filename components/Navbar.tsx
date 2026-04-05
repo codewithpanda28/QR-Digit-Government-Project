@@ -8,12 +8,14 @@ import { supabase } from '@/lib/supabase'
 import toast from 'react-hot-toast'
 
 export default function Navbar() {
+    const [mounted, setMounted] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false)
     const [user, setUser] = useState<any>(null)
     const [profile, setProfile] = useState<{ name: string, photo: string | null } | null>(null)
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
 
     useEffect(() => {
+        setMounted(true);
         const checkUser = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             setUser(session?.user ?? null);
@@ -52,6 +54,16 @@ export default function Navbar() {
         toast.success("Successfully logged out");
         window.location.href = '/';
     };
+
+    if (!mounted) {
+        return (
+            <nav className="fixed top-0 left-0 w-full bg-white z-50 border-b border-indigo-600 shadow-sm">
+                <div className="max-w-[1400px] mx-auto px-6 h-20 flex items-center justify-between">
+                    <div className="w-32 h-10 bg-slate-100 rounded-lg animate-pulse"></div>
+                </div>
+            </nav>
+        );
+    }
 
     return (
         <nav className="fixed top-0 left-0 w-full bg-white/95 backdrop-blur-md z-50 border-b-2 border-indigo-600 shadow-sm">
